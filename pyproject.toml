@@ -1,0 +1,14 @@
+[project]
+name = "dartmouth-chat-accounting"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Simon Stone", email = "simon.stone@dartmouth.edu" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
