@@ -12,6 +12,17 @@ class Accountant:
     def __init__(self, db_url: str):
         self.db_engine = db.create_engine(db_url)
 
+    def max_credits(self, user: dict) -> int:
+        """Get a user's maximum daily credits
+
+        :param user: User
+        :type user: dict
+        :return: Maximum daily credit allowance
+        :rtype: int
+        """
+
+        return 1000  # TODO: Make this depend on the user's group affiliations
+
     def remaining_credits(self, user: dict) -> int:
         """Get a user's remaining credits
 
@@ -20,8 +31,6 @@ class Accountant:
         :return: Remaining credits
         :rtype: int
         """
-
-        max_daily_credits = 1000
 
         with self.db_engine.connect() as connection:
             statement = db.text(
@@ -63,7 +72,7 @@ class Accountant:
                 f"| Cost today: {model_cost_today}"
             )
 
-        return max_daily_credits - int(used_daily_credits)
+        return self.max_credits(user) - int(used_daily_credits)
 
     def log_token_usage(
         self, model_id: str, user: dict, prompt_tokens: int, response_tokens: int

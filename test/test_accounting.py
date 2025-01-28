@@ -26,6 +26,10 @@ def model():
     return {"id": "openai.gpt-4o-2024-08-06"}
 
 
+def test_max_credits(accountant, user):
+    assert accountant.max_credits(user) == 1000
+
+
 def test_remaining_credits(accountant, user):
     assert accountant.remaining_credits(user) > 0
 
