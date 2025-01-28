@@ -41,3 +41,7 @@ def test_log_token_usage(accountant, model, user):
         prompt_tokens=1,
         response_tokens=1,
     )
+
+
+def test_is_paid(accountant, model):
+    assert accountant.is_paid(model["id"])

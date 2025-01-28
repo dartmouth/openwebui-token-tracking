@@ -20,7 +20,7 @@ class Accountant:
         :return: True if credits are required to use this model, False otherwise
         :rtype: bool
         """
-        model = [m for m in ALL_MODELS if m["id"] == model_id]
+        model = [m for m in ALL_MODELS if m.id == model_id]
         if len(model) != 1:
             raise RuntimeError(
                 f"Could not uniquely determine the model based on {model_id=}!"
