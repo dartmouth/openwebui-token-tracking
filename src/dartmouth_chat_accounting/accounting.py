@@ -12,6 +12,21 @@ class Accountant:
     def __init__(self, db_url: str):
         self.db_engine = db.create_engine(db_url)
 
+    def is_paid(self, model_id: str) -> bool:
+        """Check whether a model requires credits to use
+
+        :param model_id: ID of the model
+        :type model_id: str
+        :return: True if credits are required to use this model, False otherwise
+        :rtype: bool
+        """
+        model = [m for m in ALL_MODELS if m["id"] == model_id]
+        if len(model) != 1:
+            raise RuntimeError(
+                f"Could not uniquely determine the model based on {model_id=}!"
+            )
+        return model[0].input_cost_credits > 0 or model[0].output_cost_credits > 0
+
     def max_credits(self, user: dict) -> int:
         """Get a user's maximum daily credits
 
