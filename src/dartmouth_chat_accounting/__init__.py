@@ -1,2 +1,5 @@
-def hello() -> str:
-    return "Hello from dartmouth-chat-accounting!"
+from dartmouth_chat_accounting.accounting import Accountant
+
+__all__ = [
+    "Accountant",
+]

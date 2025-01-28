@@ -7,7 +7,14 @@ authors = [
     { name = "Simon Stone", email = "simon.stone@dartmouth.edu" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "psycopg2>=2.9.10",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.10.6",
+    "pytest>=8.3.4",
+    "python-dotenv>=1.0.1",
+    "sqlalchemy>=2.0.37",
+]
 
 [build-system]
 requires = ["hatchling"]
