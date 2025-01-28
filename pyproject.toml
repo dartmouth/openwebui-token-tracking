@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Simon Stone", email = "simon.stone@dartmouth.edu" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.10.6",
