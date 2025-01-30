@@ -73,9 +73,9 @@ class TokenTracker:
             )
 
             model_cost_today = (
-                model_data.input_cost_credits / model_data.input_tokens
+                model_data.input_cost_credits / model_data.per_input_tokens
             ) * cur_prompt_tokens_sum + (
-                model_data.output_cost_credits / model_data.output_tokens
+                model_data.output_cost_credits / model_data.per_output_tokens
             ) * cur_response_tokens_sum
 
             used_daily_credits += model_cost_today
