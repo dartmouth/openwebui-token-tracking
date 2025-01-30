@@ -1,4 +1,4 @@
-from openwebui_token_tracking import Accountant
+from openwebui_token_tracking import TokenTracker
 
 import pytest
 
@@ -10,7 +10,7 @@ def accountant():
 
     load_dotenv(find_dotenv())
 
-    return Accountant(db_url=os.environ["DATABASE_URL"])
+    return TokenTracker(db_url=os.environ["DATABASE_URL"])
 
 
 @pytest.fixture

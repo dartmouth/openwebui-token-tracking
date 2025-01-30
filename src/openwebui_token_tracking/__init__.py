@@ -1,5 +1,5 @@
-from openwebui_token_tracking.accounting import Accountant
+from openwebui_token_tracking.tracking import TokenTracker
 
 __all__ = [
-    "Accountant",
+    "TokenTracker",
 ]

@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Accountant:
+class TokenTracker:
     def __init__(self, db_url: str):
         self.db_engine = db.create_engine(db_url)
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
-    acc = Accountant(os.environ["DATABASE_URL"])
+    acc = TokenTracker(os.environ["DATABASE_URL"])
 
     print(
         acc.remaining_credits(
