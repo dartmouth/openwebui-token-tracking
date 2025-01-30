@@ -1,4 +1,4 @@
-from dartmouth_chat_accounting import Accountant
+from openwebui_token_tracking import Accountant
 
 import pytest
 

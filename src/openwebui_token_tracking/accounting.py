@@ -1,4 +1,4 @@
-from dartmouth_chat_accounting.models import ALL_MODELS
+from openwebui_token_tracking.models import ALL_MODELS
 
 import sqlalchemy as db
 
