@@ -7,6 +7,11 @@ def migrate_database(database_url: str):
     from alembic.config import Config
     from alembic import command
 
-    alembic_cfg = Config("migrations/alembic.ini")
+    from pathlib import Path
+
+    alembic_cfg = Config()
+    alembic_cfg.set_main_option(
+        "script_location", str(Path(__file__).parent / "migrations/alembic")
+    )
     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
     command.upgrade(alembic_cfg, "head")
