@@ -25,9 +25,9 @@ packages = ["openwebui_token_tracking"]
 
 [tool.hatch.build]
 include = [
-    "openwebui_token_tracking/**/*.py",
-    "openwebui_token_tracking/migrations/alembic/*",
-    "openwebui_token_tracking/migrations/alembic/versions/*"
+    "src/openwebui_token_tracking/**/*.py",
+    "src/openwebui_token_tracking/migrations/alembic/*",
+    "src/openwebui_token_tracking/migrations/alembic/versions/*"
 ]
 
 [project.scripts]
