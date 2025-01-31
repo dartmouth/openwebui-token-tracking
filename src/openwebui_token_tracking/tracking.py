@@ -1,6 +1,8 @@
-from openwebui_token_tracking.models import ALL_MODELS
+from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
+from openwebui_token_tracking.db import TokenUsageLog
 
 import sqlalchemy as db
+from sqlalchemy.orm import Session
 
 from datetime import datetime, UTC
 import logging
@@ -20,7 +22,7 @@ class TokenTracker:
         :return: True if credits are required to use this model, False otherwise
         :rtype: bool
         """
-        model = [m for m in ALL_MODELS if m.id == model_id]
+        model = [m for m in DEFAULT_MODEL_PRICING if m.id == model_id]
         if len(model) != 1:
             raise RuntimeError(
                 f"Could not uniquely determine the model based on {model_id=}!"
@@ -47,35 +49,37 @@ class TokenTracker:
         :rtype: int
         """
 
-        with self.db_engine.connect() as connection:
-            statement = db.text(
-                """
-                select model, sum(prompt_tokens) prompt_tokens_sum,
-                sum(response_tokens) response_tokens_sum
-                from token_usage_log join "user" on token_usage_log.user_id = "user".id
-                where user_id = :user_id
-                and DATE_TRUNC('day', log_date AT TIME ZONE 'America/New_York')
-                = DATE_TRUNC('day', now() AT TIME ZONE 'America/New_York')
-                and model in :model_list
-                group by model
-                """
+        with Session(self.db_engine) as session:
+            model_list = [m.id for m in DEFAULT_MODEL_PRICING]
+            query = (
+                db.select(
+                    TokenUsageLog.model_id,
+                    db.func.sum(TokenUsageLog.prompt_tokens).label("prompt_tokens_sum"),
+                    db.func.sum(TokenUsageLog.response_tokens).label(
+                        "response_tokens_sum"
+                    ),
+                )
+                .where(
+                    TokenUsageLog.user_id == user["id"],
+                    db.func.date(TokenUsageLog.log_date)
+                    == db.func.date("now", "localtime"),
+                    TokenUsageLog.model_id.in_(model_list),
+                )
+                .group_by(TokenUsageLog.model_id)
             )
-            data = {
-                "user_id": user["id"],
-                "model_list": tuple(m.id for m in ALL_MODELS),
-            }
-            result = connection.execute(statement, data)
+            results = session.execute(query).fetchall()
+
         used_daily_credits = 0
-        for row in result:
+        for row in results:
             (cur_model, cur_prompt_tokens_sum, cur_response_tokens_sum) = row
             model_data = next(
-                (item for item in ALL_MODELS if item.id == cur_model), None
+                (item for item in DEFAULT_MODEL_PRICING if item.id == cur_model), None
             )
 
             model_cost_today = (
-                model_data.input_cost_credits / model_data.input_tokens
+                model_data.input_cost_credits / model_data.per_input_tokens
             ) * cur_prompt_tokens_sum + (
-                model_data.output_cost_credits / model_data.output_tokens
+                model_data.output_cost_credits / model_data.per_output_tokens
             ) * cur_response_tokens_sum
 
             used_daily_credits += model_cost_today
@@ -108,20 +112,18 @@ class TokenTracker:
             f"| Model: {model_id} | Prompt Tokens: {prompt_tokens} "
             f"| Response Tokens: {response_tokens}"
         )
-        with self.db_engine.connect() as connection:
-            statement = db.text(
-                "insert into token_usage_log (log_date, user_id, model, prompt_tokens, "
-                "response_tokens) VALUES (now(), :user_id, :model, :prompt_tokens, "
-                ":response_tokens)"
+
+        with Session(self.db_engine) as session:
+            session.add(
+                TokenUsageLog(
+                    user_id=user.get("id"),
+                    model_id=model_id,
+                    prompt_tokens=prompt_tokens,
+                    response_tokens=response_tokens,
+                    log_date=datetime.now(),
+                )
             )
-            data = {
-                "user_id": user.get("id"),
-                "model": model_id,
-                "prompt_tokens": prompt_tokens,
-                "response_tokens": response_tokens,
-            }
-            connection.execute(statement, data)
-            connection.commit()
+            session.commit()
 
 
 if __name__ == "__main__":
@@ -144,7 +146,7 @@ if __name__ == "__main__":
     )
 
     acc.log_token_usage(
-        model_id=ALL_MODELS[0].id,
+        model_id=DEFAULT_MODEL_PRICING[0].id,
         user={
             "id": "c555fd72-fada-440f-9238-8948beeadd34",
             "email": "simon.stone@dartmouth.edu",
