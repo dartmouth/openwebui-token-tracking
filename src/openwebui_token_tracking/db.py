@@ -1,44 +1,71 @@
 from openwebui_token_tracking.models import ModelPricingSchema, DEFAULT_MODEL_PRICING
 from alembic.config import Config
 from alembic import command
-from sqlalchemy.orm import declarative_base, Session
+from sqlalchemy.orm import declarative_base, Session, relationship
 from sqlalchemy.sql import func
 import sqlalchemy as sa
 
 from pathlib import Path
+import uuid
 
 Base = declarative_base()
+
+
+class CreditGroupUser(Base):
+    """SQLAlchemy model for the credit group user table"""
+
+    __tablename__ = "credit_group_user"
+    credit_group_id = sa.Column(
+        sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id"), primary_key=True
+    )
+    user_id = sa.Column(
+        sa.String(length=255), sa.ForeignKey("user.id"), primary_key=True
+    )
+
+    credit_group = relationship("CreditGroup", back_populates="users")
+    user = relationship("User", back_populates="credit_groups")
 
 
 class CreditGroup(Base):
     """SQLAlchemy model for the credit group table"""
 
     __tablename__ = "credit_group"
-    id = sa.Column("id", sa.UUID(as_uuid=True), primary_key=True)
-    name = sa.Column("name", sa.String(length=255))
-    max_credit = sa.Column("max_credit", sa.Integer())
-
-
-class CreditGroupUser:
-    """SQLAlchemy model for the credit group user table"""
-
-    __tablename__ = "credit_group_user"
-    credit_group_id = sa.Column(
-        "credit_group_id", sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id")
+    id = sa.Column(
+        sa.UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
     )
-    user_id = sa.Column("user_id", sa.UUID(as_uuid=True), sa.ForeignKey("user.id"))
+    name = sa.Column(sa.String(length=255))
+    max_credit = sa.Column(sa.Integer())
+
+    users = relationship("CreditGroupUser", back_populates="credit_group")
+
+
+class User(Base):
+    """SQLAlchemy model for the user table.
+
+    Mocks (parts of) the user table managed by Open WebUI
+    and is only used for testing purposes.
+    """
+
+    __tablename__ = "user"
+    id = sa.Column(sa.String(length=255), primary_key=True)
+    name = sa.Column(sa.String(length=255))
+    email = sa.Column(sa.String(length=255))
+
+    credit_groups = relationship("CreditGroupUser", back_populates="user")
 
 
 class ModelPricing(Base):
     """SQLAlchemy model for the model pricing table"""
 
     __tablename__ = "model_pricing"
-    id = sa.Column("id", sa.String(length=255), primary_key=True)
-    name = sa.Column("name", sa.String(length=255))
-    input_cost_credits = sa.Column("input_cost_credits", sa.Integer())
-    per_input_tokens = sa.Column("per_input_tokens", sa.Integer())
-    output_cost_credits = sa.Column("output_cost_credits", sa.Integer())
-    per_output_tokens = sa.Column("per_output_tokens", sa.Integer())
+    id = sa.Column(sa.String(length=255), primary_key=True)
+    name = sa.Column(sa.String(length=255))
+    input_cost_credits = sa.Column(sa.Integer())
+    per_input_tokens = sa.Column(sa.Integer())
+    output_cost_credits = sa.Column(sa.Integer())
+    per_output_tokens = sa.Column(sa.Integer())
 
 
 class TokenUsageLog(Base):
@@ -50,10 +77,10 @@ class TokenUsageLog(Base):
         sa.DateTime(timezone=True),
         primary_key=True,
     )
-    user_id = sa.Column("user_id", sa.String(length=255), primary_key=True)
-    model_id = sa.Column("model_id", sa.String(length=255), primary_key=True)
-    prompt_tokens = sa.Column("prompt_tokens", sa.Integer())
-    response_tokens = sa.Column("response_tokens", sa.Integer())
+    user_id = sa.Column(sa.String(length=255), primary_key=True)
+    model_id = sa.Column(sa.String(length=255), primary_key=True)
+    prompt_tokens = sa.Column(sa.Integer())
+    response_tokens = sa.Column(sa.Integer())
 
 
 def add_model_pricing(database_url: str, models: list[ModelPricingSchema] = None):
