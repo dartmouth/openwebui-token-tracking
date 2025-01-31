@@ -2,6 +2,7 @@ from openwebui_token_tracking.models import ModelPricingSchema, DEFAULT_MODEL_PR
 from alembic.config import Config
 from alembic import command
 from sqlalchemy.orm import declarative_base, Session
+from sqlalchemy.sql import func
 import sqlalchemy as sa
 
 from pathlib import Path
@@ -21,12 +22,29 @@ class ModelPricing(Base):
     per_output_tokens = sa.Column("per_output_tokens", sa.Integer())
 
 
+class TokenUsageLog(Base):
+    """SQLAlchemy model for the token usage log table"""
+
+    __tablename__ = "token_usage_log"
+    log_date = sa.Column(
+        "log_date",
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    user_id = sa.Column("user_id", sa.String(length=255), primary_key=True)
+    model_id = sa.Column("model_id", sa.String(length=255), primary_key=True)
+    prompt_tokens = sa.Column("prompt_tokens", sa.Integer())
+    response_tokens = sa.Column("response_tokens", sa.Integer())
+
+
 def add_model_pricing(database_url: str, models: list[ModelPricingSchema] = None):
     """Add model pricing to the database
 
-    :param database_url: A database URL in `SQLAlchemy format <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
+    :param database_url: A database URL in `SQLAlchemy format
+    <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
     :type database_url: str
-    :param models: A list of model pricing descriptions. If None, uses :obj:`openwebui_token_tracking.models.DEFAULT_MODEL_PRICING`.
+    :param models: A list of model pricing descriptions. If None, uses
+    :obj:`openwebui_token_tracking.models.DEFAULT_MODEL_PRICING`.
     :type models: list[ModelPricing], optional
     """
     if models is None:
@@ -42,7 +60,8 @@ def add_model_pricing(database_url: str, models: list[ModelPricingSchema] = None
 def migrate_database(database_url: str):
     """Creates the tables required for token tracking in the specified database
 
-    :param database_url: A database URL in `SQLAlchemy format <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
+    :param database_url: A database URL in `SQLAlchemy format
+    <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
     :type database_url: str
     """
 
