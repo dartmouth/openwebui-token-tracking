@@ -20,6 +20,16 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["openwebui_token_tracking"]
+
+[tool.hatch.build]
+include = [
+    "openwebui_token_tracking/**/*.py",
+    "openwebui_token_tracking/migrations/alembic/*",
+    "openwebui_token_tracking/migrations/alembic/versions/*"
+]
+
 [project.scripts]
 migrate_database = "openwebui_token_tracking:migrate_database"
 add_model_pricing = "openwebui_token_tracking:add_model_pricing"
