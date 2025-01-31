@@ -2,7 +2,6 @@ from openwebui_token_tracking.models import ModelPricingSchema, DEFAULT_MODEL_PR
 from alembic.config import Config
 from alembic import command
 from sqlalchemy.orm import declarative_base, Session, relationship
-from sqlalchemy.sql import func
 import sqlalchemy as sa
 
 from pathlib import Path
