@@ -24,8 +24,6 @@ def upgrade() -> None:
         "model_pricing",
         sa.Column("id", sa.String(length=255), primary_key=True),
         sa.Column("name", sa.String(length=255)),
-        sa.Column("meta", sa.JSON),
-        sa.Column("params", sa.JSON()),
         sa.Column("input_cost_credits", sa.Integer()),
         sa.Column("per_input_tokens", sa.Integer()),
         sa.Column("output_cost_credits", sa.Integer()),

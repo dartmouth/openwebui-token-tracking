@@ -1,4 +1,4 @@
-from openwebui_token_tracking.models import ALL_MODELS
+from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
 
 import sqlalchemy as db
 
@@ -20,7 +20,7 @@ class TokenTracker:
         :return: True if credits are required to use this model, False otherwise
         :rtype: bool
         """
-        model = [m for m in ALL_MODELS if m.id == model_id]
+        model = [m for m in DEFAULT_MODEL_PRICING if m.id == model_id]
         if len(model) != 1:
             raise RuntimeError(
                 f"Could not uniquely determine the model based on {model_id=}!"
@@ -62,14 +62,14 @@ class TokenTracker:
             )
             data = {
                 "user_id": user["id"],
-                "model_list": tuple(m.id for m in ALL_MODELS),
+                "model_list": tuple(m.id for m in DEFAULT_MODELS),
             }
             result = connection.execute(statement, data)
         used_daily_credits = 0
         for row in result:
             (cur_model, cur_prompt_tokens_sum, cur_response_tokens_sum) = row
             model_data = next(
-                (item for item in ALL_MODELS if item.id == cur_model), None
+                (item for item in DEFAULT_MODELS if item.id == cur_model), None
             )
 
             model_cost_today = (
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     )
 
     acc.log_token_usage(
-        model_id=ALL_MODELS[0].id,
+        model_id=DEFAULT_MODELS[0].id,
         user={
             "id": "c555fd72-fada-440f-9238-8948beeadd34",
             "email": "simon.stone@dartmouth.edu",
