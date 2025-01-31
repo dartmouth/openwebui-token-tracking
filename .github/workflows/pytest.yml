@@ -17,6 +17,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+        DATABASE_URL: "sqlite:///tracking.db"
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -43,5 +46,3 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
-      env:
-        DATABASE_URL: "sqlite:///tracking.db"
