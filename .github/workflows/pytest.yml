@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-        DATABASE_URL: "sqlite:///tracking.db"
+      DATABASE_URL: "sqlite:///tracking.db"
 
     steps:
     - uses: actions/checkout@v4
