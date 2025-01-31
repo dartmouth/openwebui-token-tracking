@@ -10,6 +10,25 @@ from pathlib import Path
 Base = declarative_base()
 
 
+class CreditGroup(Base):
+    """SQLAlchemy model for the credit group table"""
+
+    __tablename__ = "credit_group"
+    id = sa.Column("id", sa.UUID(as_uuid=True), primary_key=True)
+    name = sa.Column("name", sa.String(length=255))
+    max_credit = sa.Column("max_credit", sa.Integer())
+
+
+class CreditGroupUser:
+    """SQLAlchemy model for the credit group user table"""
+
+    __tablename__ = "credit_group_user"
+    credit_group_id = sa.Column(
+        "credit_group_id", sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id")
+    )
+    user_id = sa.Column("user_id", sa.UUID(as_uuid=True), sa.ForeignKey("user.id"))
+
+
 class ModelPricing(Base):
     """SQLAlchemy model for the model pricing table"""
 
