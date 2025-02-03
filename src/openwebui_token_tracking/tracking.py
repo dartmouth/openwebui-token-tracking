@@ -60,6 +60,12 @@ class TokenTracker:
         """
 
         with Session(self.db_engine) as session:
+            # Different backends use different datetime syntax
+            is_sqlite = str(db.engine.url).startswith("sqlite")
+            current_date = (
+                db.text('date("now")') if is_sqlite else db.func.current_date()
+            )
+
             model_list = [m.id for m in DEFAULT_MODEL_PRICING]
             query = (
                 db.select(
@@ -71,8 +77,7 @@ class TokenTracker:
                 )
                 .where(
                     TokenUsageLog.user_id == user["id"],
-                    db.func.date(TokenUsageLog.log_date)
-                    == db.func.date("now", "localtime"),
+                    db.func.date(TokenUsageLog.log_date) == current_date,
                     TokenUsageLog.model_id.in_(model_list),
                 )
                 .group_by(TokenUsageLog.model_id)

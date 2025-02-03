@@ -115,4 +115,6 @@ def migrate_database(database_url: str):
         "script_location", str(Path(__file__).parent / "migrations/alembic")
     )
     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
-    command.upgrade(alembic_cfg, "head")
+
+    command.stamp(alembic_cfg, "base")
+    command.upgrade(alembic_cfg, "token_tracking@head")

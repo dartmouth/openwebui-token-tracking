@@ -31,7 +31,7 @@ def upgrade() -> None:
         sa.Column(
             "credit_group_id", sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id")
         ),
-        sa.Column("user_id", sa.UUID(as_uuid=True), sa.ForeignKey("user.id")),
+        sa.Column("user_id", sa.String(length=255), sa.ForeignKey("user.id")),
     )
 
 

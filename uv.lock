@@ -1632,6 +1632,7 @@ dependencies = [
     { name = "hpack" },
     { name = "hyperframe" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/38/d7f80fd13e6582fb8e0df8c9a653dcc02b03ca34f4d72f34869298c5baf8/h2-4.2.0.tar.gz", hash = "sha256:c8a52129695e88b1a0578d8d2cc6842bbd79128ac685463b887ee278126ad01f", size = 2150682 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d0/9e/984486f2d0a0bd2b024bf4bc1c62688fcafa9e61991f041fb0e2def4a982/h2-4.2.0-py3-none-any.whl", hash = "sha256:479a53ad425bb29af087f3458a61d30780bc818e4ebcf01f0b536ba916462ed0", size = 60957 },
 ]
@@ -3020,7 +3021,7 @@ wheels = [
 
 [[package]]
 name = "openwebui-token-tracking"
-version = "0.1.0"
+version = "0.0.1a0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
