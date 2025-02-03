@@ -28,6 +28,7 @@ def upgrade() -> None:
         sa.Column("per_input_tokens", sa.Integer()),
         sa.Column("output_cost_credits", sa.Integer()),
         sa.Column("per_output_tokens", sa.Integer()),
+        if_not_exists=True,
     )
 
 

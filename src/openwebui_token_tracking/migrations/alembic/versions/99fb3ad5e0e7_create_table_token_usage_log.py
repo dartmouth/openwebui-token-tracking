@@ -23,6 +23,7 @@ def upgrade() -> None:
         sa.Column("model_id", sa.String(length=255)),
         sa.Column("prompt_tokens", sa.Integer()),
         sa.Column("response_tokens", sa.Integer()),
+        if_not_exists=True,
     )
 
 

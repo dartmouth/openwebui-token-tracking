@@ -25,6 +25,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(as_uuid=True), primary_key=True),
         sa.Column("name", sa.String(length=255)),
         sa.Column("max_credit", sa.Integer()),
+        if_not_exists=True,
     )
     op.create_table(
         "credit_group_user",
@@ -32,6 +33,7 @@ def upgrade() -> None:
             "credit_group_id", sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id")
         ),
         sa.Column("user_id", sa.String(length=255), sa.ForeignKey("user.id")),
+        if_not_exists=True,
     )
 
 

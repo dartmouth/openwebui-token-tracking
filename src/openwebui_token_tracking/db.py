@@ -82,7 +82,9 @@ class TokenUsageLog(Base):
     response_tokens = sa.Column(sa.Integer())
 
 
-def add_model_pricing(database_url: str, models: list[ModelPricingSchema] = None):
+def add_model_pricing(
+    database_url: str, model_pricing: list[ModelPricingSchema] = None
+):
     """Add model pricing to the database
 
     :param database_url: A database URL in `SQLAlchemy format
@@ -92,12 +94,12 @@ def add_model_pricing(database_url: str, models: list[ModelPricingSchema] = None
     :obj:`openwebui_token_tracking.models.DEFAULT_MODEL_PRICING`.
     :type models: list[ModelPricing], optional
     """
-    if models is None:
-        models = DEFAULT_MODEL_PRICING
+    if model_pricing is None:
+        model_pricing = DEFAULT_MODEL_PRICING
 
     engine = sa.create_engine(database_url)
     with Session(engine) as session:
-        for model in models:
+        for model in model_pricing:
             session.add(ModelPricing(**model.model_dump()))
         session.commit()
 

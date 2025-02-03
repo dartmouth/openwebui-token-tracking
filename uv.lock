@@ -3025,6 +3025,7 @@ version = "0.0.1a0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
+    { name = "click" },
     { name = "open-webui" },
     { name = "pydantic" },
     { name = "pytest" },
@@ -3035,6 +3036,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.14.0" },
+    { name = "click", specifier = ">=8.1.8" },
     { name = "open-webui" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pytest", specifier = ">=8.3.4" },
