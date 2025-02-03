@@ -1,6 +1,6 @@
 import click
 import json
-from openwebui_token_tracking import models, ModelPricingSchema
+from openwebui_token_tracking import models
 import openwebui_token_tracking.db
 
 
@@ -33,5 +33,5 @@ def add_pricing(database_url: str, model_pricing: str):
 
     return openwebui_token_tracking.db.add_model_pricing(
         database_url=database_url,
-        model_pricing=[ModelPricingSchema(**m) for m in model_pricing],
+        model_pricing=[models.ModelPricingSchema(**m) for m in model_pricing],
     )
