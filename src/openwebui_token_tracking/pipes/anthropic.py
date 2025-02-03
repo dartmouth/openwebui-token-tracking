@@ -50,8 +50,6 @@ class Pipe:
         if self.valves.DEBUG:
             print("Incoming body:", str(body))
 
-        print("DEBUG: getting here")
-
         if (
             self.token_tracker.is_paid(model_id)
             and self.token_tracker.remaining_credits(__user__) <= 0
@@ -247,7 +245,7 @@ class Pipe:
                 raise Exception(f"HTTP Error {response.status_code}: {response.text}")
 
             res = response.json()
-            self.log_token_usage(
+            self.token_tracker.log_token_usage(
                 model_id,
                 user,
                 res["usage"]["input_tokens"],
