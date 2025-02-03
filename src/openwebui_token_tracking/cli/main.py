@@ -1,5 +1,5 @@
 import click
-from .commands import database, pricing
+from .commands import database, pricing, credit_group
 
 
 @click.group()
@@ -11,7 +11,7 @@ def cli():
 # Register commands
 cli.add_command(database.database)
 cli.add_command(pricing.pricing)
-# cli.add_command(cmd2.command_2)
+cli.add_command(credit_group.credit_group)
 
 if __name__ == "__main__":
     cli()
