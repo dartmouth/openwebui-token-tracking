@@ -58,13 +58,15 @@ class TokenTracker:
         :return: Remaining credits
         :rtype: int
         """
-
+        print("made it here")
+        logger.debug("Checking remaining credits...")
         with Session(self.db_engine) as session:
             # Different backends use different datetime syntax
             is_sqlite = str(db.engine.url).startswith("sqlite")
             current_date = (
                 db.text('date("now")') if is_sqlite else db.func.current_date()
             )
+            logger.debug(current_date)
 
             model_list = [m.id for m in DEFAULT_MODEL_PRICING]
             query = (
