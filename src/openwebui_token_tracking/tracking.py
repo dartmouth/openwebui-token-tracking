@@ -59,7 +59,7 @@ class TokenTracker:
         :rtype: int
         """
         print("made it here")
-        logger.debug("Checking remaining credits...")
+        logger.info("Checking remaining credits...")
         with Session(self.db_engine) as session:
             # Different backends use different datetime syntax
             is_sqlite = str(db.engine.url).startswith("sqlite")

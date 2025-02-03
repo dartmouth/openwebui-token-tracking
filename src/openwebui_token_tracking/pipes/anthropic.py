@@ -50,6 +50,8 @@ class Pipe:
         if self.valves.DEBUG:
             print("Incoming body:", str(body))
 
+        print("DEBUG: getting here")
+
         if (
             self.token_tracker.is_paid(model_id)
             and self.token_tracker.remaining_credits(__user__) <= 0
