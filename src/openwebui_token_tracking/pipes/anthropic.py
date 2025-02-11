@@ -222,10 +222,11 @@ class TrackedPipe:
                                 print(f"Full data: {data}")
 
             self.token_tracker.log_token_usage(
-                model_id,
-                user,
-                prompt_tokens,
-                response_tokens,
+                provider=PROVIDER,
+                model_id=model_id,
+                user=user,
+                prompt_tokens=prompt_tokens,
+                response_tokens=response_tokens,
             )
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}")
@@ -244,10 +245,11 @@ class TrackedPipe:
 
             res = response.json()
             self.token_tracker.log_token_usage(
-                model_id,
-                user,
-                res["usage"]["input_tokens"],
-                res["usage"]["output_tokens"],
+                provider=PROVIDER,
+                model_id=model_id,
+                user=user,
+                prompt_tokens=res["usage"]["input_tokens"],
+                response_tokens=res["usage"]["output_tokens"],
             )
             return (
                 res["content"][0]["text"] if "content" in res and res["content"] else ""

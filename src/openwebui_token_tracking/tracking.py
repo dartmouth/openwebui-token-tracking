@@ -146,10 +146,17 @@ class TokenTracker:
         return self.max_credits(user) - int(used_daily_credits)
 
     def log_token_usage(
-        self, model_id: str, user: dict, prompt_tokens: int, response_tokens: int
+        self,
+        provider: str,
+        model_id: str,
+        user: dict,
+        prompt_tokens: int,
+        response_tokens: int,
     ):
         """Log the used tokens in the database
 
+        :param provider: Provider of the model used with these tokens
+        :type provider: str
         :param model_id: ID of the model used with these tokens
         :type model_id: str
         :param user: User
@@ -168,6 +175,7 @@ class TokenTracker:
         with Session(self.db_engine) as session:
             session.add(
                 TokenUsageLog(
+                    provider=provider,
                     user_id=user.get("id"),
                     model_id=model_id,
                     prompt_tokens=prompt_tokens,
