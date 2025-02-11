@@ -12,6 +12,7 @@ load_dotenv(find_dotenv())
 
 
 TEST_CREDIT_LIMIT = 2000
+BASELINE_ALLOWANCE = 1000
 
 
 @pytest.fixture
@@ -68,8 +69,7 @@ def model():
 
 
 def test_max_credits(tracker, user, with_credit_group):
-    assert tracker.max_credits(user) == TEST_CREDIT_LIMIT
-    assert tracker.max_credits({"id": "non-existant"}, min_limit=1500) == 1500
+    assert tracker.max_credits(user) == TEST_CREDIT_LIMIT + BASELINE_ALLOWANCE
 
 
 def test_remaining_credits(tracker, user):

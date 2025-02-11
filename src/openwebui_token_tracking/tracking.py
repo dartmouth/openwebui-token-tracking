@@ -1,5 +1,10 @@
 from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
-from openwebui_token_tracking.db import TokenUsageLog, CreditGroup, CreditGroupUser
+from openwebui_token_tracking.db import (
+    TokenUsageLog,
+    CreditGroup,
+    CreditGroupUser,
+    BaseSetting,
+)
 
 import sqlalchemy as db
 from sqlalchemy.orm import Session
@@ -29,18 +34,22 @@ class TokenTracker:
             )
         return model[0].input_cost_credits > 0 or model[0].output_cost_credits > 0
 
-    def max_credits(self, user: dict, min_limit: int = 1000) -> int:
+    def max_credits(self, user: dict) -> int:
         """Get a user's maximum daily credits
 
         :param user: User
         :type user: dict
-        :param min_limit: Minimum credit allowance, default 1000.
-        :type min_limit: int
         :return: Maximum daily credit allowance
         :rtype: int
         """
         with Session(self.db_engine) as session:
-            total_max_credit = (
+            base_allowance = int(
+                session.query(BaseSetting)
+                .filter(BaseSetting.setting_key == "base_credit_allowance")
+                .scalar()
+                .setting_value
+            )
+            group_allowances = (
                 session.query(db.func.sum(CreditGroup.max_credit))
                 .join(
                     CreditGroupUser, CreditGroup.id == CreditGroupUser.credit_group_id
@@ -48,7 +57,7 @@ class TokenTracker:
                 .filter(CreditGroupUser.user_id == user["id"])
                 .scalar()
             )
-        return max(total_max_credit if total_max_credit is not None else 0, min_limit)
+        return base_allowance + group_allowances
 
     def remaining_credits(self, user: dict) -> int:
         """Get a user's remaining credits
