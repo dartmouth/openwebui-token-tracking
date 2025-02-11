@@ -31,11 +31,10 @@ class TrackedPipe:
     def get_models(self):
         models = [
             {
-                "id": model.id.replace(PROVIDER + ".", "", 1),
+                "id": model.id,
                 "name": model.name,
             }
-            for model in DEFAULT_MODEL_PRICING
-            if model.id.startswith(PROVIDER)
+            for model in self.token_tracker.get_models(provider=PROVIDER)
         ]
         return models
 
