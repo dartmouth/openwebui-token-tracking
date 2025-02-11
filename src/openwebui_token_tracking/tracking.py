@@ -4,6 +4,8 @@ from openwebui_token_tracking.db import (
     CreditGroup,
     CreditGroupUser,
     BaseSetting,
+    ModelPricing,
+    ModelPricingSchema,
 )
 
 import sqlalchemy as db
@@ -19,6 +21,30 @@ class TokenTracker:
     def __init__(self, db_url: str):
         self.db_engine = db.create_engine(db_url)
 
+    def get_models(
+        self, provider: str = None, id: str = None
+    ) -> list[ModelPricingSchema]:
+        """Get all available models.
+
+        :param provider: If not None, only returns the models by this provider. Defaults to None
+        :type provider: str, optional
+        :return: A description of the models' pricing schema
+        :rtype: list[ModelPricingSchema]
+        """
+
+        with Session(self.db_engine) as session:
+            if provider is None:
+                models = session.query(ModelPricing).all()
+            else:
+                models = (
+                    session.query(ModelPricing)
+                    .filter(ModelPricing.provider == provider)
+                    .all()
+                )
+        return [
+            ModelPricingSchema.model_validate(m, from_attributes=True) for m in models
+        ]
+
     def is_paid(self, model_id: str) -> bool:
         """Check whether a model requires credits to use
 
@@ -27,7 +53,7 @@ class TokenTracker:
         :return: True if credits are required to use this model, False otherwise
         :rtype: bool
         """
-        model = [m for m in DEFAULT_MODEL_PRICING if m.id == model_id]
+        model = [m for m in self.get_models() if m.id == model_id]
         if len(model) != 1:
             raise RuntimeError(
                 f"Could not uniquely determine the model based on {model_id=}!"
@@ -162,21 +188,5 @@ if __name__ == "__main__":
 
     acc = TokenTracker(os.environ["DATABASE_URL"])
 
-    print(
-        acc.remaining_credits(
-            user={
-                "id": "c555fd72-fada-440f-9238-8948beeadd34",
-                "email": "simon.stone@dartmouth.edu",
-            },
-        )
-    )
-
-    acc.log_token_usage(
-        model_id=DEFAULT_MODEL_PRICING[0].id,
-        user={
-            "id": "c555fd72-fada-440f-9238-8948beeadd34",
-            "email": "simon.stone@dartmouth.edu",
-        },
-        prompt_tokens=1,
-        response_tokens=1,
-    )
+    print(acc.get_models())
+    print(acc.get_models(provider="anthropic"))
