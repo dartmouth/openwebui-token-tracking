@@ -1,0 +1,3 @@
+include src/openwebui_token_tracking/migrations/alembic/*
+include src/openwebui_token_tracking/migrations/alembic/versions/*
+recursive-include src/openwebui_token_tracking/migrations *.py *.mako

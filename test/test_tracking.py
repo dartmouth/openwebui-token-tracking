@@ -67,7 +67,7 @@ def model():
     return {"id": "openai.gpt-4o-2024-08-06"}
 
 
-def test_max_credits(tracker, user):
+def test_max_credits(tracker, user, with_credit_group):
     assert tracker.max_credits(user) == TEST_CREDIT_LIMIT
     assert tracker.max_credits({"id": "non-existant"}, min_limit=1500) == 1500
 

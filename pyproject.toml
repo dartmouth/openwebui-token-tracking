@@ -1,25 +1,36 @@
 [project]
 name = "openwebui-token-tracking"
-version = "0.1.0"
+version = "0.0.1-alpha"
 description = "Add your description here"
 readme = "README.md"
 authors = [
     { name = "Simon Stone", email = "simon.stone@dartmouth.edu" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "alembic>=1.14.1",
-    "psycopg2-binary>=2.9.10",
-    "pydantic>=2.10.6",
+    "alembic>=1.14.0",
+    "open-webui",
+    "pydantic>=2.9.2",
     "pytest>=8.3.4",
     "python-dotenv>=1.0.1",
-    "sqlalchemy>=2.0.37",
+    "sqlalchemy>=2.0.32",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/openwebui_token_tracking"]
+
+[tool.hatch.build]
+include = [
+    "src/openwebui_token_tracking/**/*.py",
+    "src/openwebui_token_tracking/migrations/alembic/*",
+    "src/openwebui_token_tracking/migrations/alembic/versions/*"
+]
+
 [project.scripts]
 migrate_database = "openwebui_token_tracking:migrate_database"
+init_base_settings = "openwebui_token_tracking:init_base_settings"
 add_model_pricing = "openwebui_token_tracking:add_model_pricing"
