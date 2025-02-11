@@ -32,4 +32,5 @@ include = [
 
 [project.scripts]
 migrate_database = "openwebui_token_tracking:migrate_database"
+init_base_settings = "openwebui_token_tracking:init_base_settings"
 add_model_pricing = "openwebui_token_tracking:add_model_pricing"

@@ -25,6 +25,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(as_uuid=True), primary_key=True),
         sa.Column("name", sa.String(length=255)),
         sa.Column("max_credit", sa.Integer()),
+        sa.Column("description", sa.String(length=255)),
     )
     op.create_table(
         "token_tracking_credit_group_user",

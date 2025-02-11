@@ -10,12 +10,24 @@ import uuid
 Base = declarative_base()
 
 
+class BaseSetting(Base):
+    """SQLAlchemy model for the baseline settings table"""
+
+    __tablename__ = "token_tracking_base_settings"
+
+    setting_key = sa.Column(sa.String(length=255), primary_key=True)
+    setting_value = sa.Column(sa.String(length=255))
+    description = sa.Column(sa.String(length=255))
+
+
 class CreditGroupUser(Base):
     """SQLAlchemy model for the credit group user table"""
 
-    __tablename__ = "credit_group_user"
+    __tablename__ = "token_tracking_credit_group_user"
     credit_group_id = sa.Column(
-        sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id"), primary_key=True
+        sa.UUID(as_uuid=True),
+        sa.ForeignKey("token_tracking_credit_group.id"),
+        primary_key=True,
     )
     user_id = sa.Column(
         sa.String(length=255), sa.ForeignKey("user.id"), primary_key=True
@@ -28,7 +40,7 @@ class CreditGroupUser(Base):
 class CreditGroup(Base):
     """SQLAlchemy model for the credit group table"""
 
-    __tablename__ = "credit_group"
+    __tablename__ = "token_tracking_credit_group"
     id = sa.Column(
         sa.UUID(as_uuid=True),
         primary_key=True,
@@ -36,6 +48,7 @@ class CreditGroup(Base):
     )
     name = sa.Column(sa.String(length=255))
     max_credit = sa.Column(sa.Integer())
+    description = sa.Column(sa.String(length=255))
 
     users = relationship("CreditGroupUser", back_populates="credit_group")
 
@@ -58,7 +71,7 @@ class User(Base):
 class ModelPricing(Base):
     """SQLAlchemy model for the model pricing table"""
 
-    __tablename__ = "model_pricing"
+    __tablename__ = "token_tracking_model_pricing"
     id = sa.Column(sa.String(length=255), primary_key=True)
     name = sa.Column(sa.String(length=255))
     input_cost_credits = sa.Column(sa.Integer())
@@ -70,7 +83,7 @@ class ModelPricing(Base):
 class TokenUsageLog(Base):
     """SQLAlchemy model for the token usage log table"""
 
-    __tablename__ = "token_usage_log"
+    __tablename__ = "token_tracking_usage_log"
     log_date = sa.Column(
         "log_date",
         sa.DateTime(timezone=True),
@@ -118,3 +131,29 @@ def migrate_database(database_url: str):
 
     command.stamp(alembic_cfg, "base")
     command.upgrade(alembic_cfg, "token_tracking@head")
+
+
+def init_base_settings(database_url: str, settings: list[dict[str, str]] = None):
+    """Initializes the base settings table with default values
+
+    :param database_url: A database URL in `SQLAlchemy format
+    <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
+    :type database_url: str
+    :param settings: A list of dictionaries of settings to use. If None, uses default settings.
+    :type settings: list[dict[str, str]]
+    """
+
+    if settings is None:
+        settings = [
+            {
+                "setting_key": "base_credit_allowance",
+                "setting_value": "1000",
+                "description": "Baseline credit allowance for all users.",
+            }
+        ]
+
+    engine = sa.create_engine(database_url)
+    with Session(engine) as session:
+        for setting in settings:
+            session.add(BaseSetting(**setting))
+        session.commit()

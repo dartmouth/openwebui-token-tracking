@@ -11,7 +11,7 @@ from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
 PROVIDER = "openai"
 
 
-class Pipe:
+class TrackedPipe:
     class Valves(BaseModel):
         OPENAI_API_KEY: str = Field(
             default="",
