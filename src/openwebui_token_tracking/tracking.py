@@ -76,7 +76,7 @@ class TokenTracker:
                 .setting_value
             )
             group_allowances = (
-                session.query(db.func.sum(CreditGroup.max_credit))
+                session.query(db.func.coalesce(db.func.sum(CreditGroup.max_credit), 0))
                 .join(
                     CreditGroupUser, CreditGroup.id == CreditGroupUser.credit_group_id
                 )
