@@ -11,7 +11,7 @@ from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
 PROVIDER = "anthropic"
 
 
-class Pipe:
+class TrackedPipe:
     class Valves(BaseModel):
         ANTHROPIC_API_KEY: str = Field(
             default="",
