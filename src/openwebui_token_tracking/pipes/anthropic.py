@@ -43,8 +43,7 @@ class TrackedPipe:
 
     def pipe(self, body: dict, __user__: dict) -> Union[str, Generator, Iterator]:
         system_message, messages = pop_system_message(body["messages"])
-        model_id = body.get("model")
-        model_name = model_id.replace(PROVIDER + ".", "", 1)
+        model_id = body.get("model").replace(PROVIDER + ".", "", 1)
 
         if self.valves.DEBUG:
             print("Incoming body:", str(body))
@@ -105,7 +104,7 @@ class TrackedPipe:
 
         # Ensure the system_message is coerced to a string
         payload = {
-            "model": model_name,
+            "model": model_id,
             "messages": processed_messages,
             "max_tokens": body.get("max_tokens", 4096),
             "temperature": body.get("temperature", 0.8),
