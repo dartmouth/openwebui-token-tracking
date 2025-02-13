@@ -1,4 +1,3 @@
-from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
 from openwebui_token_tracking.db import (
     TokenUsageLog,
     CreditGroup,
@@ -101,8 +100,8 @@ class TokenTracker:
                 db.text('date("now")') if is_sqlite else db.func.current_date()
             )
             logger.debug(current_date)
-
-            model_list = [m.id for m in DEFAULT_MODEL_PRICING]
+            models = self.get_models()
+            model_list = [m.id for m in models]
             query = (
                 db.select(
                     TokenUsageLog.model_id,
@@ -123,9 +122,7 @@ class TokenTracker:
         used_daily_credits = 0
         for row in results:
             (cur_model, cur_prompt_tokens_sum, cur_response_tokens_sum) = row
-            model_data = next(
-                (item for item in DEFAULT_MODEL_PRICING if item.id == cur_model), None
-            )
+            model_data = next((item for item in models if item.id == cur_model), None)
 
             model_cost_today = (
                 model_data.input_cost_credits / model_data.per_input_tokens
