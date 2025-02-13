@@ -237,7 +237,7 @@ class BaseTrackedPipe(ABC):
             print(f"Error in pipe method: {e}")
             return f"Error: {e}"
 
-    def stream_response(self, url, headers, payload, model_id, user):
+    def stream_response(self, headers, payload, model_id, user):
         """
         Handle streaming responses from the API.
 
@@ -257,7 +257,7 @@ class BaseTrackedPipe(ABC):
         """
         try:
             prompt_tokens, response_tokens, response_generator = (
-                self._make_stream_request(url, headers, payload)
+                self._make_stream_request(headers, payload)
             )
 
             try:
@@ -275,7 +275,7 @@ class BaseTrackedPipe(ABC):
             print(f"Error in stream_response: {e}")
             yield f"Error: {e}"
 
-    def non_stream_response(self, url, headers, payload, model_id, user):
+    def non_stream_response(self, headers, payload, model_id, user):
         """
         Handle non-streaming responses from the API.
 
@@ -296,7 +296,7 @@ class BaseTrackedPipe(ABC):
         """
         try:
             prompt_tokens, response_tokens, response = self._make_non_stream_request(
-                url, headers, payload
+                headers, payload
             )
 
             self.token_tracker.log_token_usage(

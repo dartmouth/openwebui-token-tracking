@@ -30,7 +30,9 @@ class AnthropicTrackedPipe(BaseTrackedPipe):
         Initialize the Anthropic pipe with API endpoint and configuration.
         Sets up image size limits and loads API key from environment.
         """
-        super().__init__("anthropic", "https://api.anthropic.com/v1/messages")
+        super().__init__(
+            provider="anthropic", url="https://api.anthropic.com/v1/messages"
+        )
         self.valves = self.Valves(
             **{"ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY", "")}
         )
