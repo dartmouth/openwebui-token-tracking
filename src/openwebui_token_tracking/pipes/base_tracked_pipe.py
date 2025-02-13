@@ -301,16 +301,14 @@ class BaseTrackedPipe(ABC):
         :raises RequestError: If the API request fails
         """
         try:
-            prompt_tokens, response_tokens, response = self._make_non_stream_request(
-                headers, payload
-            )
+            tokens, response = self._make_non_stream_request(headers, payload)
 
             self.token_tracker.log_token_usage(
                 provider=self.provider,
                 model_id=model_id,
                 user=user,
-                prompt_tokens=prompt_tokens,
-                response_tokens=response_tokens,
+                prompt_tokens=tokens.prompt_tokens,
+                response_tokens=tokens.response_tokens,
             )
 
             return response
