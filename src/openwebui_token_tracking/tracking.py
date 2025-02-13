@@ -93,7 +93,6 @@ class TokenTracker:
         :return: Remaining credits
         :rtype: int
         """
-        print("made it here")
         logger.info("Checking remaining credits...")
         with Session(self.db_engine) as session:
             # Different backends use different datetime syntax
