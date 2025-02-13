@@ -78,7 +78,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
             stream_payload = {**payload, "stream_options": {"include_usage": True}}
 
             with requests.post(
-                self.url,
+                url=self.url,
                 headers=headers,
                 json=stream_payload,
                 stream=True,
@@ -105,7 +105,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
                             except KeyError as e:
                                 print(f"Unexpected data structure: {e}")
                                 print(f"Full data: {data}")
-                        yield line
+                    yield line
 
         return prompt_tokens, response_tokens, generate_stream()
 
