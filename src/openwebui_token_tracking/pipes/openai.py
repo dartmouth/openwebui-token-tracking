@@ -4,7 +4,7 @@ import json
 from pydantic import BaseModel, Field
 from typing import Generator, Any, Tuple
 from open_webui.utils.misc import pop_system_message
-from .base_tracked_pipe import BaseTrackedPipe, RequestError
+from .base_tracked_pipe import BaseTrackedPipe, RequestError, TokenCount
 
 
 class OpenAITrackedPipe(BaseTrackedPipe):
@@ -57,7 +57,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
 
     def _make_stream_request(
         self, headers: dict, payload: dict
-    ) -> Tuple[int, int, Generator[Any, None, None]]:
+    ) -> Tuple[TokenCount, Generator[Any, None, None]]:
         """
         Make a streaming request to the OpenAI API.
 
@@ -65,15 +65,13 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         :type headers: dict
         :param payload: Request payload
         :type payload: dict
-        :return: Tuple of (prompt tokens, completion tokens, response generator)
-        :rtype: Tuple[int, int, Generator[Any, None, None]]
+        :return: Tuple of (TokenCount, response generator)
+        :rtype: Tuple[TokenCount, Generator[Any, None, None]]
         :raises RequestError: If the API request fails
         """
-        prompt_tokens = 0
-        response_tokens = 0
+        tokens = TokenCount()
 
         def generate_stream():
-            nonlocal prompt_tokens, response_tokens
 
             stream_payload = {**payload, "stream_options": {"include_usage": True}}
 
@@ -96,8 +94,10 @@ class OpenAITrackedPipe(BaseTrackedPipe):
                             try:
                                 data = json.loads(line[6:])
                                 if data.get("usage", None):
-                                    prompt_tokens = data["usage"].get("prompt_tokens")
-                                    response_tokens = data["usage"].get(
+                                    tokens.prompt_tokens = data["usage"].get(
+                                        "prompt_tokens"
+                                    )
+                                    tokens.response_tokens = data["usage"].get(
                                         "completion_tokens"
                                     )
                             except json.JSONDecodeError:
@@ -107,11 +107,11 @@ class OpenAITrackedPipe(BaseTrackedPipe):
                                 print(f"Full data: {data}")
                     yield line
 
-        return prompt_tokens, response_tokens, generate_stream()
+        return tokens, generate_stream()
 
     def _make_non_stream_request(
         self, headers: dict, payload: dict
-    ) -> Tuple[int, int, Any]:
+    ) -> Tuple[TokenCount, Any]:
         """
         Make a non-streaming request to the OpenAI API.
 
@@ -119,7 +119,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         :type headers: dict
         :param payload: Request payload
         :type payload: dict
-        :return: Tuple of (prompt tokens, completion tokens, response data)
+        :return: Tuple of (TokenCount, response data)
         :rtype: Tuple[int, int, Any]
         :raises RequestError: If the API request fails
         """
@@ -131,7 +131,8 @@ class OpenAITrackedPipe(BaseTrackedPipe):
             raise RequestError(f"HTTP Error {response.status_code}: {response.text}")
 
         res = response.json()
-        prompt_tokens = res["usage"]["prompt_tokens"]
-        response_tokens = res["usage"]["completion_tokens"]
+        tokens = TokenCount()
+        tokens.prompt_tokens = res["usage"]["prompt_tokens"]
+        tokens.response_tokens = res["usage"]["completion_tokens"]
 
-        return prompt_tokens, response_tokens, res
+        return tokens, res

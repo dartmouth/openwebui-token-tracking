@@ -4,6 +4,7 @@
 - [x] Get models from model pricing SQL table
 - [x] Consider splitting provider from model id into its own column
   - [ ] Return concatenated ID (provider + id)
+- [ ] Create class hierarchy for tracked pipes
 - [ ] CRUD for groups
 - [ ] CRUD for model pricing
 - [ ] CRUD for user membership in groups

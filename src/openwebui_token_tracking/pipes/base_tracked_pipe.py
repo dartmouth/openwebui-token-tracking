@@ -28,6 +28,12 @@ class RequestError(Exception):
     pass
 
 
+class TokenCount:
+    def __init__(self):
+        self.prompt_tokens = 0
+        self.response_tokens = 0
+
+
 class BaseTrackedPipe(ABC):
     """
     Base class for handling API requests to different AI model providers with token
@@ -114,7 +120,7 @@ class BaseTrackedPipe(ABC):
     @abstractmethod
     def _make_stream_request(
         self, headers, payload
-    ) -> Tuple[int, int, Generator[Any, None, None]]:
+    ) -> Tuple[TokenCount, Generator[Any, None, None]]:
         """
         Make a streaming request to the API.
 
@@ -125,14 +131,14 @@ class BaseTrackedPipe(ABC):
         :type headers: dict
         :param payload: Request payload
         :type payload: dict
-        :return: Tuple containing prompt tokens, response tokens, and response generator
-        :rtype: tuple[int, int, Generator[Any, None, None]]
+        :return: Tuple containing the token count and a response generator
+        :rtype: tuple[TokenCount, Generator[Any, None, None]]
         :raises RequestError: If the API request fails
         """
         pass
 
     @abstractmethod
-    def _make_non_stream_request(self, headers, payload) -> Tuple[int, int, Any]:
+    def _make_non_stream_request(self, headers, payload) -> Tuple[TokenCount, Any]:
         """
         Make a non-streaming request to the API.
 
@@ -143,8 +149,8 @@ class BaseTrackedPipe(ABC):
         :type headers: dict
         :param payload: Request payload
         :type payload: dict
-        :return: Tuple containing (response data, prompt tokens, response tokens)
-        :rtype: tuple[Any, int, int]
+        :return: Tuple containing the token count and the response
+        :rtype: tuple[TokenCount, Any]
         :raises RequestError: If the API request fails
         """
         pass
@@ -256,20 +262,20 @@ class BaseTrackedPipe(ABC):
         :raises RequestError: If the API request fails
         """
         try:
-            prompt_tokens, response_tokens, response_generator = (
-                self._make_stream_request(headers, payload)
-            )
+            tokens, response_generator = self._make_stream_request(headers, payload)
 
-            try:
-                yield from response_generator
-            finally:
-                self.token_tracker.log_token_usage(
-                    provider=self.provider,
-                    model_id=model_id,
-                    user=user,
-                    prompt_tokens=prompt_tokens,
-                    response_tokens=response_tokens,
-                )
+            chunks = []
+            for chunk in response_generator:
+                chunks.append(chunk)
+                yield chunk
+
+            self.token_tracker.log_token_usage(
+                provider=self.provider,
+                model_id=model_id,
+                user=user,
+                prompt_tokens=tokens.prompt_tokens,
+                response_tokens=tokens.response_tokens,
+            )
 
         except Exception as e:
             print(f"Error in stream_response: {e}")

@@ -4,7 +4,7 @@ import json
 from pydantic import BaseModel, Field
 from typing import List, Generator, Any, Tuple
 from open_webui.utils.misc import pop_system_message
-from .base_tracked_pipe import BaseTrackedPipe, RequestError
+from .base_tracked_pipe import BaseTrackedPipe, RequestError, TokenCount
 
 
 class AnthropicTrackedPipe(BaseTrackedPipe):
@@ -87,15 +87,13 @@ class AnthropicTrackedPipe(BaseTrackedPipe):
         :type headers: dict
         :param payload: Request payload
         :type payload: dict
-        :return: Tuple of (prompt tokens, completion tokens, response generator)
-        :rtype: Tuple[int, int, Generator[Any, None, None]]
+        :return: Tuple of (TokenCount, response generator)
+        :rtype: Tuple[TokenCount, Generator[Any, None, None]]
         :raises RequestError: If the API request fails
         """
-        prompt_tokens = 0
-        response_tokens = 0
+        tokens = TokenCount()
 
         def generate_stream():
-            nonlocal prompt_tokens, response_tokens
             with requests.post(
                 self.url, headers=headers, json=payload, stream=True, timeout=(3.05, 60)
             ) as response:
@@ -117,11 +115,13 @@ class AnthropicTrackedPipe(BaseTrackedPipe):
                                 elif data["type"] == "message_stop":
                                     break
                                 elif data["type"] == "message_start":
-                                    prompt_tokens = data["message"]["usage"][
+                                    tokens.prompt_tokens = data["message"]["usage"][
                                         "input_tokens"
                                     ]
                                 elif data["type"] == "message_delta":
-                                    response_tokens = data["usage"]["output_tokens"]
+                                    tokens.response_tokens = data["usage"][
+                                        "output_tokens"
+                                    ]
                                 elif data["type"] == "message":
                                     for content in data.get("content", []):
                                         if content["type"] == "text":
@@ -132,7 +132,7 @@ class AnthropicTrackedPipe(BaseTrackedPipe):
                                 print(f"Unexpected data structure: {e}")
                                 print(f"Full data: {data}")
 
-        return prompt_tokens, response_tokens, generate_stream()
+        return tokens, generate_stream()
 
     def _make_non_stream_request(
         self, headers: dict, payload: dict
@@ -144,8 +144,8 @@ class AnthropicTrackedPipe(BaseTrackedPipe):
         :type headers: dict
         :param payload: Request payload
         :type payload: dict
-        :return: Tuple of (prompt tokens, completion tokens, response data)
-        :rtype: Tuple[int, int, Any]
+        :return: Tuple of (TokenCount, response data)
+        :rtype: Tuple[TokenCount, Any]
         :raises RequestError: If the API request fails
         """
         response = requests.post(
@@ -155,13 +155,14 @@ class AnthropicTrackedPipe(BaseTrackedPipe):
             raise RequestError(f"HTTP Error {response.status_code}: {response.text}")
 
         res = response.json()
-        prompt_tokens = res["usage"]["input_tokens"]
-        response_tokens = res["usage"]["output_tokens"]
+        tokens = TokenCount()
+        tokens.prompt_tokens = res["usage"]["input_tokens"]
+        tokens.response_tokens = res["usage"]["output_tokens"]
         response_text = (
             res["content"][0]["text"] if "content" in res and res["content"] else ""
         )
 
-        return prompt_tokens, response_tokens, response_text
+        return tokens, response_text
 
     def _process_messages(self, messages: List[dict]) -> List[dict]:
         processed_messages = []
