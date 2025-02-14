@@ -84,7 +84,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         tokens = TokenCount()
 
         def generate_stream():
-            self.url = f"{self.valves.API_BASE_URL}/chat/completions"
+            self.url = f"{self.valves.API_BASE_URL.rstrip('/')}/chat/completions"
             stream_payload = {**payload, "stream_options": {"include_usage": True}}
 
             with requests.post(
@@ -135,7 +135,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         :rtype: Tuple[int, int, Any]
         :raises RequestError: If the API request fails
         """
-        self.url = f"{self.valves.API_BASE_URL.rstrip("/")}/chat/completions"
+        self.url = f"{self.valves.API_BASE_URL.rstrip('/')}/chat/completions"
         response = requests.post(
             self.url, headers=headers, json=payload, timeout=(3.05, 60)
         )
