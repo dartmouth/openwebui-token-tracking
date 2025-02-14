@@ -37,10 +37,12 @@ class OpenAITrackedPipe(BaseTrackedPipe):
 
     def __init__(self):
         """Initialize the OpenAI pipe with API endpoint and configuration."""
-        super().__init__(
-            "openai",
-        )
         self.valves = self.Valves(**{"API_KEY": os.getenv("OPENAI_API_KEY", "")})
+        super().__init__(
+            # Provider and URL are read from Valves for each request
+            provider="",
+            url="",
+        )
 
     def _headers(self) -> dict:
         """
@@ -149,3 +151,8 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         tokens.response_tokens = res["usage"]["completion_tokens"]
 
         return tokens, res
+
+    def pipe(self, body, __user__):
+        self.provider = self.valves.PROVIDER
+        self.url = f"{self.valves.API_BASE_URL.rstrip('/')}/v1/chat/completions"
+        return super().pipe(body, __user__)
