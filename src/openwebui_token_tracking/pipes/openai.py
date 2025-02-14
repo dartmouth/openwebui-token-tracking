@@ -3,7 +3,6 @@ import requests
 import json
 from pydantic import BaseModel, Field
 from typing import Generator, Any, Tuple
-from open_webui.utils.misc import pop_system_message
 from .base_tracked_pipe import BaseTrackedPipe, RequestError, TokenCount
 
 
@@ -12,39 +11,52 @@ class OpenAITrackedPipe(BaseTrackedPipe):
     OpenAI-specific implementation of the BaseTrackedPipe for handling API requests
     to OpenAI's chat completion endpoints with token tracking.
 
+    Note that providers that are fully compliant with OpenAI's API specification
+    (both regarding the request and the response structure), can also be used with
+    this pipe by setting the respective values in the Valves.
+
     This class handles authentication, request formatting, and response processing
     specific to the OpenAI API while leveraging the base class's token tracking
     functionality.
     """
 
     class Valves(BaseModel):
-        """Configuration parameters for OpenAI API connections."""
-        OPENAI_API_KEY: str = Field(
+        """Configuration parameters for OpenAI (compatible) API connections."""
+        API_KEY: str = Field(
             default="",
-            description="API key for authenticating requests to the OpenAI API.",
+            description="API key for authenticating requests to the OpenAI (or compatible) API.",
+        )
+        API_BASE_URL: str = Field(
+            default="https://api.openai.com/v1",
+            description="Base URL of the OpenAI (or compatible) API ",
+        )
+        PROVIDER: str = Field(
+            default="openai", description="Name of the model provider."
         )
         DEBUG: bool = Field(default=False)
 
     def __init__(self):
         """Initialize the OpenAI pipe with API endpoint and configuration."""
-        super().__init__("openai", "https://api.openai.com/v1/chat/completions")
-        self.valves = self.Valves(**{"OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", "")})
+        super().__init__(
+            "openai",
+        )
+        self.valves = self.Valves(**{"API_KEY": os.getenv("OPENAI_API_KEY", "")})
 
     def _headers(self) -> dict:
         """
-        Build headers for OpenAI API requests.
+        Build headers for OpenAI (compatible) API requests.
 
         :return: Dictionary containing authorization and content-type headers
         :rtype: dict
         """
         return {
-            "Authorization": f"Bearer {self.valves.OPENAI_API_KEY}",
+            "Authorization": f"Bearer {self.valves.API_KEY}",
             "content-type": "application/json",
         }
 
     def _payload(self, model_id: str, body: dict) -> dict:
         """
-        Format the request payload for OpenAI API.
+        Format the request payload for OpenAI (compatible) API.
 
         :param model_id: The ID of the model to use
         :type model_id: str
@@ -59,7 +71,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         self, headers: dict, payload: dict
     ) -> Tuple[TokenCount, Generator[Any, None, None]]:
         """
-        Make a streaming request to the OpenAI API.
+        Make a streaming request to the OpenAI (compatible) API.
 
         :param headers: HTTP headers for the request
         :type headers: dict
@@ -72,7 +84,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         tokens = TokenCount()
 
         def generate_stream():
-
+            self.url = f"{self.valves.API_BASE_URL}/chat/completions"
             stream_payload = {**payload, "stream_options": {"include_usage": True}}
 
             with requests.post(
@@ -113,7 +125,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         self, headers: dict, payload: dict
     ) -> Tuple[TokenCount, Any]:
         """
-        Make a non-streaming request to the OpenAI API.
+        Make a non-streaming request to the OpenAI (compatible) API.
 
         :param headers: HTTP headers for the request
         :type headers: dict
@@ -123,6 +135,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         :rtype: Tuple[int, int, Any]
         :raises RequestError: If the API request fails
         """
+        self.url = f"{self.valves.API_BASE_URL.rstrip("/")}/chat/completions"
         response = requests.post(
             self.url, headers=headers, json=payload, timeout=(3.05, 60)
         )
