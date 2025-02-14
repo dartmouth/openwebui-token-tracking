@@ -56,6 +56,7 @@ class GoogleTrackedPipe(BaseTrackedPipe):
                 "USE_PERMISSIVE_SAFETY": False,
             }
         )
+        # Repeat configure every time the pipe runs because the valve might change
         genai.configure(api_key=self.valves.GOOGLE_API_KEY)
 
     def _headers(self) -> dict:
@@ -138,6 +139,7 @@ class GoogleTrackedPipe(BaseTrackedPipe):
             }
 
         return {
+            "model_id": model_id,
             "contents": contents,
             "generation_config": generation_config,
             "safety_settings": safety_settings,
@@ -217,3 +219,7 @@ class GoogleTrackedPipe(BaseTrackedPipe):
         tokens.response_tokens = response.usage_metadata.candidates_token_count
 
         return tokens, response.text
+
+    def pipe(self, body, __user__):
+        genai.configure(api_key=self.valves.GOOGLE_API_KEY)
+        return super().pipe(body, __user__)
