@@ -91,19 +91,19 @@ class MistralTrackedPipe(BaseTrackedPipe):
         }
 
     def _make_stream_request(
-        self, headers: dict, payload: dict, retries: int = 5
+        self,
+        headers: dict,
+        payload: dict,
     ) -> Tuple[TokenCount, Generator[Any, None, None]]:
         """
         Make a streaming request to the Mistral API.
 
-        Implements retry logic for rate limiting and handles streaming responses.
+        Handles streaming responses.
 
         :param headers: HTTP headers for the request
         :type headers: dict
         :param payload: Request payload containing messages and configuration
         :type payload: dict
-        :param retries: Number of retry attempts for rate-limited requests
-        :type retries: int
         :return: Tuple of TokenCount object and response generator
         :rtype: Tuple[TokenCount, Generator[Any, None, None]]
         :raises RequestError: If the API request fails after all retries
@@ -111,97 +111,76 @@ class MistralTrackedPipe(BaseTrackedPipe):
         tokens = TokenCount()
 
         def generate_stream():
-            for attempt in range(retries):
-                try:
-                    response = requests.post(
-                        self.url, json=payload, headers=headers, stream=True
-                    )
-                    response.raise_for_status()
+            try:
+                response = requests.post(
+                    self.url, json=payload, headers=headers, stream=True
+                )
+                response.raise_for_status()
 
-                    for line in response.iter_lines():
-                        if line:
-                            try:
-                                line_data = line.decode("utf-8").lstrip("data: ")
-                                event = json.loads(line_data)
-                                self._debug(f"Received stream event: {event}")
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            line_data = line.decode("utf-8").lstrip("data: ")
+                            event = json.loads(line_data)
+                            self._debug(f"Received stream event: {event}")
 
-                                delta_content = (
-                                    event.get("choices", [{}])[0]
-                                    .get("delta", {})
-                                    .get("content")
-                                )
-                                if delta_content:
-                                    yield delta_content
+                            delta_content = (
+                                event.get("choices", [{}])[0]
+                                .get("delta", {})
+                                .get("content")
+                            )
+                            if delta_content:
+                                yield delta_content
 
-                                if (
-                                    event.get("choices", [{}])[0].get("finish_reason")
-                                    == "stop"
-                                ):
-                                    tokens.prompt_tokens = event["usage"][
-                                        "prompt_tokens"
-                                    ]
-                                    tokens.response_tokens = event["usage"][
-                                        "completion_tokens"
-                                    ]
-                                    break
+                            if (
+                                event.get("choices", [{}])[0].get("finish_reason")
+                                == "stop"
+                            ):
+                                tokens.prompt_tokens = event["usage"]["prompt_tokens"]
+                                tokens.response_tokens = event["usage"][
+                                    "completion_tokens"
+                                ]
+                                break
 
-                            except json.JSONDecodeError:
-                                self._debug(f"Failed to decode stream line: {line}")
-                                continue
+                        except json.JSONDecodeError:
+                            self._debug(f"Failed to decode stream line: {line}")
+                            continue
 
-                except requests.RequestException as e:
-                    if response.status_code == 429 and attempt < retries - 1:
-                        wait_time = 2**attempt
-                        self._debug(
-                            f"Rate limited (429). Retrying after {wait_time} seconds..."
-                        )
-                        time.sleep(wait_time)
-                    else:
-                        self._debug(f"Stream request failed: {e}")
-                        raise RequestError(f"Stream request failed: {e}")
+            except requests.RequestException as e:
+                raise RequestError(f"Stream request failed: {e}")
 
         return tokens, generate_stream()
 
     def _make_non_stream_request(
-        self, headers: dict, payload: dict, retries: int = 3
+        self, headers: dict, payload: dict
     ) -> Tuple[TokenCount, Any]:
         """
         Make a non-streaming request to the Mistral API.
 
-        Implements retry logic for rate limiting and handles regular responses.
+        Handles regular responses.
 
         :param headers: HTTP headers for the request
         :type headers: dict
         :param payload: Request payload containing messages and configuration
         :type payload: dict
-        :param retries: Number of retry attempts for rate-limited requests
-        :type retries: int
         :return: Tuple of TokenCount object and response text
         :rtype: Tuple[TokenCount, Any]
         :raises RequestError: If the API request fails after all retries
         """
         tokens = TokenCount()
 
-        for attempt in range(retries):
-            try:
-                self._debug(f"Attempt {attempt + 1}: Sending completion request")
-                response = requests.post(self.url, json=payload, headers=headers)
-                data = self._handle_response(response)
+        try:
+            self._debug(f"Attempt {attempt + 1}: Sending completion request")
+            response = requests.post(self.url, json=payload, headers=headers)
+            data = self._handle_response(response)
 
-                tokens.prompt_tokens = data["usage"]["prompt_tokens"]
-                tokens.response_tokens = data["usage"]["completion_tokens"]
+            tokens.prompt_tokens = data["usage"]["prompt_tokens"]
+            tokens.response_tokens = data["usage"]["completion_tokens"]
 
-                return tokens, data["choices"][0]["message"]["content"]
+            return tokens, data["choices"][0]["message"]["content"]
 
-            except requests.RequestException as e:
-                if response.status_code == 429 and attempt < retries - 1:
-                    wait_time = 2**attempt
-                    self._debug(
-                        f"Rate limited (429). Retrying after {wait_time} seconds..."
-                    )
-                    time.sleep(wait_time)
-                else:
-                    raise RequestError(f"Request failed: {e}")
+        except requests.RequestException as e:
+            raise RequestError(f"Request failed: {e}")
 
     def _handle_response(self, response: requests.Response) -> dict:
         """
