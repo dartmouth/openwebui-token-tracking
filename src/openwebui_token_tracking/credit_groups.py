@@ -7,7 +7,10 @@ import os
 
 
 def create_credit_group(
-    credit_group_name: str, credit_allowance: int, database_url: str = None
+    credit_group_name: str,
+    credit_allowance: int,
+    description: str,
+    database_url: str = None,
 ):
     """Creates a credit group in the database.
 
@@ -15,6 +18,8 @@ def create_credit_group(
     :type credit_group_name: str
     :param credit_allowance: Maximum credit allowance granted to members of this group.
     :type credit_allowance: int
+    :param description: Description e of the credit group to be created.
+    :type description: str
     :param database_url: URL of the database. If None, uses env variable ``DATABASE_URL``
     :type database_url: str, optional
     :raises KeyError: Raised if a credit group of this name already exists.
@@ -31,12 +36,16 @@ def create_credit_group(
         )
         if not credit_group:
             session.add(
-                CreditGroup(name=credit_group_name, max_credit=credit_allowance)
+                CreditGroup(
+                    name=credit_group_name,
+                    max_credit=credit_allowance,
+                    description=description,
+                )
             )
             session.commit()
         else:
             raise KeyError(
-                f"A credit group of that name already exists: {credit_group}"
+                f"A credit group of that name already exists: '{credit_group.name}'"
             )
 
 
