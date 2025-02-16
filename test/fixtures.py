@@ -8,7 +8,7 @@ from openwebui_token_tracking.credit_groups import add_user, create_credit_group
 import os
 
 TEST_CREDIT_LIMIT = 2000
-
+BASE_ALLOWANCE = 1000
 
 @pytest.fixture
 def user():

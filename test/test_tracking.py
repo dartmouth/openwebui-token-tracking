@@ -6,7 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 
 import os
 
-from fixtures import user, with_credit_group, TEST_CREDIT_LIMIT, model
+from fixtures import user, with_credit_group, TEST_CREDIT_LIMIT, BASE_ALLOWANCE, model
 
 load_dotenv(find_dotenv())
 
@@ -17,7 +17,7 @@ def tracker():
 
 
 def test_max_credits(tracker, user, with_credit_group):
-    assert tracker.max_credits(user) == TEST_CREDIT_LIMIT + BASELINE_ALLOWANCE
+    assert tracker.max_credits(user) == TEST_CREDIT_LIMIT + BASE_ALLOWANCE
 
 
 def test_remaining_credits(tracker, user):

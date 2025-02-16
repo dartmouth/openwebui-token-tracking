@@ -3,6 +3,7 @@ from openwebui_token_tracking.tracking import TokenTracker
 
 def init_base_settings():
     import openwebui_token_tracking.db
+    import argparse
 
     parser = argparse.ArgumentParser(
         description=(

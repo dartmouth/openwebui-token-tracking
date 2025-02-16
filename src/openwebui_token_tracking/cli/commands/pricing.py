@@ -484,7 +484,7 @@ def add_pricing(
     else:
         if not all([provider, id, name, input_cost_credits, output_cost_credits]):
             raise click.UsageError(
-                "When not using --bulk, all options except per_*_tokens are required"
+                "When not using --json, all options except per_*_tokens are required"
             )
         model_pricing = [
             models.ModelPricingSchema(

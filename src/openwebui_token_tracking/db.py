@@ -1,4 +1,4 @@
-from openwebui_token_tracking.models import ModelPricingSchema, DEFAULT_MODEL_PRICING
+from openwebui_token_tracking.models import ModelPricingSchema
 from alembic.config import Config
 from alembic import command
 from sqlalchemy.orm import declarative_base, Session, relationship
@@ -211,20 +211,15 @@ def get_model_pricing(
         ]
 
 
-def add_model_pricing(
-    database_url: str, model_pricing: list[ModelPricingSchema] = None
-):
+def add_model_pricing(database_url: str, model_pricing: list[ModelPricingSchema]):
     """Add model pricing to the database
 
     :param database_url: A database URL in `SQLAlchemy format
     <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
     :type database_url: str
-    :param models: A list of model pricing descriptions. If None, uses
-    :obj:`openwebui_token_tracking.models.DEFAULT_MODEL_PRICING`.
+    :param models: A list of model pricing descriptions.
     :type models: list[ModelPricing], optional
     """
-    if model_pricing is None:
-        model_pricing = DEFAULT_MODEL_PRICING
 
     engine = sa.create_engine(database_url)
     with Session(engine) as session:
