@@ -65,7 +65,7 @@ def with_credit_group(user):
 
 @pytest.fixture
 def model():
-    return {"id": "gpt-4o-2024-08-06"}
+    return {"id": "gpt-4o-2024-08-06", "provider": "openai"}
 
 
 def test_max_credits(tracker, user, with_credit_group):
@@ -79,6 +79,7 @@ def test_remaining_credits(tracker, user):
 def test_log_token_usage(tracker, model, user):
     tracker.log_token_usage(
         model_id=model["id"],
+        provider=model["provider"],
         user=user,
         prompt_tokens=1,
         response_tokens=1,
