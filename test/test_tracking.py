@@ -27,6 +27,7 @@ def test_remaining_credits(tracker, user):
 def test_log_token_usage(tracker, model, user):
     tracker.log_token_usage(
         model_id=model["id"],
+        provider=model["provider"],
         user=user,
         prompt_tokens=1,
         response_tokens=1,
