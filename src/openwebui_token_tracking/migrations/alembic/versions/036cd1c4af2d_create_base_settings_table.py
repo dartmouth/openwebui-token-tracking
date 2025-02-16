@@ -25,6 +25,7 @@ def upgrade() -> None:
         sa.Column("setting_key", sa.String(length=255), primary_key=True),
         sa.Column("setting_value", sa.String(length=255)),
         sa.Column("description", sa.String(length=255)),
+        if_not_exists=True,
     )
 
 
