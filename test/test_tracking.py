@@ -65,7 +65,7 @@ def with_credit_group(user):
 
 @pytest.fixture
 def model():
-    return {"id": "openai.gpt-4o-2024-08-06"}
+    return {"id": "gpt-4o-2024-08-06"}
 
 
 def test_max_credits(tracker, user, with_credit_group):
