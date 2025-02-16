@@ -15,4 +15,29 @@ pip install openwebui-token-tracking
 
 ## Usage
 
-TODO
+A command-line interface  is provided for convenient setup and management of the token tracking system.
+
+### Initial setup
+
+
+Assuming Open WebUI's default env variable `DATABASE_URL` pointing to the database:
+```
+owui-token-tracking database migrate
+```
+
+Init base settings
+
+```
+owui-token-tracking init
+```
+
+
+### Manage model pricing
+
+```
+owui-token-tracking pricing add
+```
+
+### Manage credit groups
+
+...
