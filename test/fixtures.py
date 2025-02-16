@@ -41,4 +41,4 @@ def with_credit_group(user):
 
 @pytest.fixture
 def model():
-    return {"id": "openai.gpt-4o-2024-08-06"}
+    return {"id": "gpt-4o-2024-08-06", "provider": "openai"}
