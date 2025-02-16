@@ -29,7 +29,8 @@ packages = ["src/openwebui_token_tracking"]
 include = [
     "src/openwebui_token_tracking/**/*.py",
     "src/openwebui_token_tracking/migrations/alembic/*",
-    "src/openwebui_token_tracking/migrations/alembic/versions/*"
+    "src/openwebui_token_tracking/migrations/alembic/versions/*",
+    "src/openwebui_token_tracking/resources/*"
 ]
 
 [project.scripts]
