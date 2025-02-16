@@ -170,7 +170,6 @@ class MistralTrackedPipe(BaseTrackedPipe):
         tokens = TokenCount()
 
         try:
-            self._debug(f"Attempt {attempt + 1}: Sending completion request")
             response = requests.post(self.url, json=payload, headers=headers)
             data = self._handle_response(response)
 
