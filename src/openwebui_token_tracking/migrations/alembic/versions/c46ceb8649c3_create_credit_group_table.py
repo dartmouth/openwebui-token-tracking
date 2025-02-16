@@ -21,16 +21,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.create_table(
-        "credit_group",
+        "token_tracking_credit_group",
         sa.Column("id", sa.UUID(as_uuid=True), primary_key=True),
         sa.Column("name", sa.String(length=255)),
         sa.Column("max_credit", sa.Integer()),
+        sa.Column("description", sa.String(length=255)),
         if_not_exists=True,
     )
     op.create_table(
-        "credit_group_user",
+        "token_tracking_credit_group_user",
         sa.Column(
-            "credit_group_id", sa.UUID(as_uuid=True), sa.ForeignKey("credit_group.id")
+            "credit_group_id",
+            sa.UUID(as_uuid=True),
+            sa.ForeignKey("token_tracking_credit_group.id"),
         ),
         sa.Column("user_id", sa.String(length=255), sa.ForeignKey("user.id")),
         if_not_exists=True,
@@ -38,5 +41,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_table("credit_group_users")
-    op.drop_table("credit_group")
+    op.drop_table("token_tracking_credit_group_users")
+    op.drop_table("token_tracking_credit_group")

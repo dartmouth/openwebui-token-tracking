@@ -17,9 +17,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.create_table(
-        "token_usage_log",
+        "token_tracking_usage_log",
         sa.Column("log_date", sa.DateTime(timezone=True)),
         sa.Column("user_id", sa.String(length=255)),
+        sa.Column("provider", sa.String(length=255)),
         sa.Column("model_id", sa.String(length=255)),
         sa.Column("prompt_tokens", sa.Integer()),
         sa.Column("response_tokens", sa.Integer()),
@@ -28,4 +29,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_table("token_usage_log")
+    op.drop_table("token_tracking_usage_log")

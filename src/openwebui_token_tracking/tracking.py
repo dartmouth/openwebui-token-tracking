@@ -1,5 +1,11 @@
-from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
-from openwebui_token_tracking.db import TokenUsageLog, CreditGroup, CreditGroupUser
+from openwebui_token_tracking.db import (
+    TokenUsageLog,
+    CreditGroup,
+    CreditGroupUser,
+    BaseSetting,
+    ModelPricing,
+    ModelPricingSchema,
+)
 
 import sqlalchemy as db
 from sqlalchemy.orm import Session
@@ -14,6 +20,30 @@ class TokenTracker:
     def __init__(self, db_url: str):
         self.db_engine = db.create_engine(db_url)
 
+    def get_models(
+        self, provider: str = None, id: str = None
+    ) -> list[ModelPricingSchema]:
+        """Get all available models.
+
+        :param provider: If not None, only returns the models by this provider. Defaults to None
+        :type provider: str, optional
+        :return: A description of the models' pricing schema
+        :rtype: list[ModelPricingSchema]
+        """
+
+        with Session(self.db_engine) as session:
+            if provider is None:
+                models = session.query(ModelPricing).all()
+            else:
+                models = (
+                    session.query(ModelPricing)
+                    .filter(ModelPricing.provider == provider)
+                    .all()
+                )
+        return [
+            ModelPricingSchema.model_validate(m, from_attributes=True) for m in models
+        ]
+
     def is_paid(self, model_id: str) -> bool:
         """Check whether a model requires credits to use
 
@@ -22,33 +52,37 @@ class TokenTracker:
         :return: True if credits are required to use this model, False otherwise
         :rtype: bool
         """
-        model = [m for m in DEFAULT_MODEL_PRICING if m.id == model_id]
+        model = [m for m in self.get_models() if m.id == model_id]
         if len(model) != 1:
             raise RuntimeError(
                 f"Could not uniquely determine the model based on {model_id=}!"
             )
         return model[0].input_cost_credits > 0 or model[0].output_cost_credits > 0
 
-    def max_credits(self, user: dict, min_limit: int = 1000) -> int:
+    def max_credits(self, user: dict) -> int:
         """Get a user's maximum daily credits
 
         :param user: User
         :type user: dict
-        :param min_limit: Minimum credit allowance, default 1000.
-        :type min_limit: int
         :return: Maximum daily credit allowance
         :rtype: int
         """
         with Session(self.db_engine) as session:
-            total_max_credit = (
-                session.query(db.func.sum(CreditGroup.max_credit))
+            base_allowance = int(
+                session.query(BaseSetting)
+                .filter(BaseSetting.setting_key == "base_credit_allowance")
+                .scalar()
+                .setting_value
+            )
+            group_allowances = (
+                session.query(db.func.coalesce(db.func.sum(CreditGroup.max_credit), 0))
                 .join(
                     CreditGroupUser, CreditGroup.id == CreditGroupUser.credit_group_id
                 )
                 .filter(CreditGroupUser.user_id == user["id"])
                 .scalar()
             )
-        return max(total_max_credit if total_max_credit is not None else 0, min_limit)
+        return base_allowance + group_allowances
 
     def remaining_credits(self, user: dict) -> int:
         """Get a user's remaining credits
@@ -58,7 +92,6 @@ class TokenTracker:
         :return: Remaining credits
         :rtype: int
         """
-        print("made it here")
         logger.info("Checking remaining credits...")
         with Session(self.db_engine) as session:
             # Different backends use different datetime syntax
@@ -67,8 +100,8 @@ class TokenTracker:
                 db.text('date("now")') if is_sqlite else db.func.current_date()
             )
             logger.debug(current_date)
-
-            model_list = [m.id for m in DEFAULT_MODEL_PRICING]
+            models = self.get_models()
+            model_list = [m.id for m in models]
             query = (
                 db.select(
                     TokenUsageLog.model_id,
@@ -89,9 +122,7 @@ class TokenTracker:
         used_daily_credits = 0
         for row in results:
             (cur_model, cur_prompt_tokens_sum, cur_response_tokens_sum) = row
-            model_data = next(
-                (item for item in DEFAULT_MODEL_PRICING if item.id == cur_model), None
-            )
+            model_data = next((item for item in models if item.id == cur_model), None)
 
             model_cost_today = (
                 model_data.input_cost_credits / model_data.per_input_tokens
@@ -111,10 +142,17 @@ class TokenTracker:
         return self.max_credits(user) - int(used_daily_credits)
 
     def log_token_usage(
-        self, model_id: str, user: dict, prompt_tokens: int, response_tokens: int
+        self,
+        provider: str,
+        model_id: str,
+        user: dict,
+        prompt_tokens: int,
+        response_tokens: int,
     ):
         """Log the used tokens in the database
 
+        :param provider: Provider of the model used with these tokens
+        :type provider: str
         :param model_id: ID of the model used with these tokens
         :type model_id: str
         :param user: User
@@ -133,6 +171,7 @@ class TokenTracker:
         with Session(self.db_engine) as session:
             session.add(
                 TokenUsageLog(
+                    provider=provider,
                     user_id=user.get("id"),
                     model_id=model_id,
                     prompt_tokens=prompt_tokens,
@@ -153,21 +192,5 @@ if __name__ == "__main__":
 
     acc = TokenTracker(os.environ["DATABASE_URL"])
 
-    print(
-        acc.remaining_credits(
-            user={
-                "id": "c555fd72-fada-440f-9238-8948beeadd34",
-                "email": "simon.stone@dartmouth.edu",
-            },
-        )
-    )
-
-    acc.log_token_usage(
-        model_id=DEFAULT_MODEL_PRICING[0].id,
-        user={
-            "id": "c555fd72-fada-440f-9238-8948beeadd34",
-            "email": "simon.stone@dartmouth.edu",
-        },
-        prompt_tokens=1,
-        response_tokens=1,
-    )
+    print(acc.get_models())
+    print(acc.get_models(provider="anthropic"))

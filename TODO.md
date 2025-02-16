@@ -1,0 +1,11 @@
+- [x] rename `Pipe` class `TrackedPipe`
+- [x] move base allowance to a SQL table
+- [x] standardize naming scheme with same prefix ("`token_tracking_*`")
+- [x] Get models from model pricing SQL table
+- [x] Consider splitting provider from model id into its own column
+  - [ ] Return concatenated ID (provider + id)
+- [ ] Create class hierarchy for tracked pipes
+- [ ] CRUD for groups
+- [ ] CRUD for model pricing
+- [ ] CRUD for user membership in groups
+- [ ] Add command to find user by email

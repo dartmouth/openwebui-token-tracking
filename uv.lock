@@ -3026,6 +3026,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "click" },
+    { name = "google-generativeai" },
     { name = "open-webui" },
     { name = "pydantic" },
     { name = "pytest" },
@@ -3037,6 +3038,7 @@ dependencies = [
 requires-dist = [
     { name = "alembic", specifier = ">=1.14.0" },
     { name = "click", specifier = ">=8.1.8" },
+    { name = "google-generativeai", specifier = ">=0.7.2" },
     { name = "open-webui" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pytest", specifier = ">=8.3.4" },
