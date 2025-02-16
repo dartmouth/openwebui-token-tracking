@@ -11,7 +11,7 @@ def credit_group():
 @credit_group.command()
 @click.argument("name")
 @click.argument("allowance")
-@click.argument("database_url")
+@click.argument("database_url", envvar="DATABASE_URL")
 def create(name: str, allowance: int, database_url: str):
     """Create a new credit group NAME with the credit allowance ALLOWANCE in the
     database at DATABASE_URL.
@@ -24,7 +24,7 @@ def create(name: str, allowance: int, database_url: str):
 @credit_group.command()
 @click.argument("user_id")
 @click.argument("credit_group")
-@click.argument("database_url")
+@click.argument("database_url", envvar="DATABASE_URL")
 def add_user(user_id: str, credit_group: str, database_url: str):
     """Add a user with USER_ID to the credit group CREDIT_GROUP in the
     database at DATABASE_URL.

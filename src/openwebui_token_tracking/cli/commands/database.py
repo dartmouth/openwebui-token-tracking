@@ -9,7 +9,7 @@ def database():
 
 
 @database.command()
-@click.argument("database_url")
+@click.argument("database_url", envvar="DATABASE_URL")
 def migrate(database_url: str):
     """Migrate the database at DATABASE_URL to include the tables required for token tracking.
     Expects DATABASE_URL to be in SQLAlchemy format.

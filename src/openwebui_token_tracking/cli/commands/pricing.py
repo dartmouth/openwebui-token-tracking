@@ -11,7 +11,7 @@ def pricing():
 
 
 @pricing.command(name="add")
-@click.argument("database_url")
+@click.argument("database_url", envvar="DATABASE_URL")
 @click.option(
     "-m",
     "--model-pricing",
@@ -26,7 +26,7 @@ def add_pricing(database_url: str, model_pricing: str):
 
     DATABASE_URL is expected to be in SQLAlchemy format.
 
-    If --mode-pricing is not provided, uses
+    If --model-pricing is not provided, uses
     openwebui_token_tracking.models.DEFAULT_MODEL_PRICING.
     """
     model_pricing = json.loads(model_pricing)
