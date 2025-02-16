@@ -91,6 +91,7 @@ class TokenUsageLog(Base):
         primary_key=True,
     )
     user_id = sa.Column(sa.String(length=255), primary_key=True)
+    provider = sa.Column(sa.String(length=255), primary_key=True)
     model_id = sa.Column(sa.String(length=255), primary_key=True)
     prompt_tokens = sa.Column(sa.Integer())
     response_tokens = sa.Column(sa.Integer())

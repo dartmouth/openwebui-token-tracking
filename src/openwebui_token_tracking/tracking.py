@@ -1,4 +1,3 @@
-from openwebui_token_tracking.models import DEFAULT_MODEL_PRICING
 from openwebui_token_tracking.db import (
     TokenUsageLog,
     CreditGroup,
@@ -76,7 +75,7 @@ class TokenTracker:
                 .setting_value
             )
             group_allowances = (
-                session.query(db.func.sum(CreditGroup.max_credit))
+                session.query(db.func.coalesce(db.func.sum(CreditGroup.max_credit), 0))
                 .join(
                     CreditGroupUser, CreditGroup.id == CreditGroupUser.credit_group_id
                 )
@@ -93,7 +92,6 @@ class TokenTracker:
         :return: Remaining credits
         :rtype: int
         """
-        print("made it here")
         logger.info("Checking remaining credits...")
         with Session(self.db_engine) as session:
             # Different backends use different datetime syntax
@@ -102,8 +100,8 @@ class TokenTracker:
                 db.text('date("now")') if is_sqlite else db.func.current_date()
             )
             logger.debug(current_date)
-
-            model_list = [m.id for m in DEFAULT_MODEL_PRICING]
+            models = self.get_models()
+            model_list = [m.id for m in models]
             query = (
                 db.select(
                     TokenUsageLog.model_id,
@@ -124,9 +122,7 @@ class TokenTracker:
         used_daily_credits = 0
         for row in results:
             (cur_model, cur_prompt_tokens_sum, cur_response_tokens_sum) = row
-            model_data = next(
-                (item for item in DEFAULT_MODEL_PRICING if item.id == cur_model), None
-            )
+            model_data = next((item for item in models if item.id == cur_model), None)
 
             model_cost_today = (
                 model_data.input_cost_credits / model_data.per_input_tokens
@@ -146,10 +142,17 @@ class TokenTracker:
         return self.max_credits(user) - int(used_daily_credits)
 
     def log_token_usage(
-        self, model_id: str, user: dict, prompt_tokens: int, response_tokens: int
+        self,
+        provider: str,
+        model_id: str,
+        user: dict,
+        prompt_tokens: int,
+        response_tokens: int,
     ):
         """Log the used tokens in the database
 
+        :param provider: Provider of the model used with these tokens
+        :type provider: str
         :param model_id: ID of the model used with these tokens
         :type model_id: str
         :param user: User
@@ -168,6 +171,7 @@ class TokenTracker:
         with Session(self.db_engine) as session:
             session.add(
                 TokenUsageLog(
+                    provider=provider,
                     user_id=user.get("id"),
                     model_id=model_id,
                     prompt_tokens=prompt_tokens,

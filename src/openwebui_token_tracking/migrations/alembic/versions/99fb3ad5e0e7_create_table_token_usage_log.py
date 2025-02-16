@@ -20,6 +20,7 @@ def upgrade() -> None:
         "token_tracking_usage_log",
         sa.Column("log_date", sa.DateTime(timezone=True)),
         sa.Column("user_id", sa.String(length=255)),
+        sa.Column("provider", sa.String(length=255)),
         sa.Column("model_id", sa.String(length=255)),
         sa.Column("prompt_tokens", sa.Integer()),
         sa.Column("response_tokens", sa.Integer()),
