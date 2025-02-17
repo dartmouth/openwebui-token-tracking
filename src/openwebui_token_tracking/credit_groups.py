@@ -82,6 +82,42 @@ def get_credit_group(credit_group_name: str, database_url: str = None) -> dict:
         }
 
 
+def list_credit_groups(database_url: str = None) -> list[dict]:
+    """Lists all credit groups in the database in a readable format.
+
+    :param database_url: URL of the database. If None, uses env variable ``DATABASE_URL``
+    :type database_url: str, optional
+    :return: List of dictionaries containing formatted credit group information
+    :rtype: list[dict]
+    """
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+    engine = db.create_engine(database_url)
+
+    with Session(engine) as session:
+        credit_groups = session.query(CreditGroup).all()
+        formatted_groups = []
+        for credit_group in credit_groups:
+            # Count number of users in the group
+            user_count = (
+                session.query(CreditGroupUser)
+                .filter_by(credit_group_id=credit_group.id)
+                .count()
+            )
+
+            formatted_groups.append(
+                {
+                    "id": str(credit_group.id),  # Convert UUID to string
+                    "name": credit_group.name,
+                    "description": credit_group.description,
+                    "max_credit": credit_group.max_credit,
+                    "user_count": user_count,
+                }
+            )
+
+        return formatted_groups
+
+
 def add_user(user_id: str, credit_group_name: str, database_url: str = None):
     """Add the specified user to the credit group
 

@@ -57,7 +57,7 @@ def list(database_url: str):
         )
         click.echo("Credit groups:")
         for group in result:
-            click.echo(f"- {group}")
+            click.echo(f"{group}")
         return result
     except Exception as e:
         click.echo(f"Error listing credit groups: {str(e)}", err=True)
