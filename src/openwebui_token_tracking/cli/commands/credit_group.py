@@ -86,11 +86,18 @@ def update(name: str, allowance: int, database_url: str):
 @credit_group.command()
 @click.argument("name")
 @click.argument("database-url", envvar="DATABASE_URL")
-def delete(name: str, database_url: str):
+@click.option(
+    "--force",
+    is_flag=True,
+    help="force credit group deletion even if it has users",
+)
+def delete(name: str, database_url: str, force: bool = False):
     """Delete credit group NAME from the database at DATABASE_URL."""
     try:
         result = openwebui_token_tracking.credit_groups.delete_credit_group(
-            credit_group_name=name, database_url=database_url
+            credit_group_name=name,
+            database_url=database_url,
+            force=force,
         )
         click.echo(f"Successfully deleted credit group '{name}'")
         return result

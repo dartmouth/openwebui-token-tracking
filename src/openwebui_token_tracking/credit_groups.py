@@ -118,6 +118,58 @@ def list_credit_groups(database_url: str = None) -> list[dict]:
         return formatted_groups
 
 
+def delete_credit_group(
+    credit_group_name: str, database_url: str = None, force: bool = False
+):
+    """Deletes a credit group from the database.
+
+    :param credit_group_name: Name of the credit group to delete
+    :type credit_group_name: str
+    :param database_url: URL of the database. If None, uses env variable
+    ``DATABASE_URL``
+    :type database_url: str, optional
+    :param force: If True, deletes group even if it has users. If False, raises error
+    if group has users
+    :type force: bool, optional
+    :raises KeyError: Raised if the credit group of that name could not be found
+    :raises ValueError: Raised if the group has users and force=False
+    """
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+    engine = db.create_engine(database_url)
+
+    with Session(engine) as session:
+        # Find the credit group
+        credit_group = (
+            session.query(CreditGroup).filter_by(name=credit_group_name).first()
+        )
+        if not credit_group:
+            raise KeyError(f"Could not find credit group: {credit_group_name}")
+
+        # Check if the group has any users
+        user_count = (
+            session.query(CreditGroupUser)
+            .filter_by(credit_group_id=credit_group.id)
+            .count()
+        )
+
+        if user_count > 0 and not force:
+            raise ValueError(
+                f"Credit group '{credit_group_name}' has {user_count} users. "
+                "Use force=True to delete anyway."
+            )
+
+        # Delete all user associations if force=True
+        if force:
+            session.query(CreditGroupUser).filter_by(
+                credit_group_id=credit_group.id
+            ).delete()
+
+        # Delete the credit group
+        session.delete(credit_group)
+        session.commit()
+
+
 def add_user(user_id: str, credit_group_name: str, database_url: str = None):
     """Add the specified user to the credit group
 
