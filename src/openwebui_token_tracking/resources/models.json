@@ -37,11 +37,11 @@
     },
     {
         "provider": "google_genai",
-        "id": "gemini-1.5-flash-002",
-        "name": "Gemini 1.5 Flash (Cloud, Paid) 2024-09-01",
-        "input_cost_credits": 75,
+        "id": "gemini-2.0-flash-001",
+        "name": "Gemini 2.0 Flash (Cloud, Paid) 2025-02-05",
+        "input_cost_credits": 100,
         "per_input_tokens": 1000000,
-        "output_cost_credits": 300,
+        "output_cost_credits": 400,
         "per_output_tokens": 1000000
     },
     {
