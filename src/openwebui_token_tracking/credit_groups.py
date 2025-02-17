@@ -49,6 +49,39 @@ def create_credit_group(
             )
 
 
+def get_credit_group(credit_group_name: str, database_url: str = None) -> dict:
+    """Retrieves a credit group from the database by its name and returns it as a
+    dictionary.
+
+    :param credit_group_name: Name of the credit group to retrieve
+    :type credit_group_name: str
+    :param database_url: URL of the database. If None, uses env variable
+    ``DATABASE_URL``
+    :type database_url: str, optional
+    :return: Dictionary containing the credit group properties (id, name, max_credit,
+    description)
+    :rtype: dict
+    :raises KeyError: Raised if the credit group of that name could not be found
+    """
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+
+    engine = db.create_engine(database_url)
+    with Session(engine) as session:
+        credit_group = (
+            session.query(CreditGroup).filter_by(name=credit_group_name).first()
+        )
+        if not credit_group:
+            raise KeyError(f"Could not find credit group: {credit_group_name}")
+
+        return {
+            "id": str(credit_group.id),  # Convert UUID to string
+            "name": credit_group.name,
+            "max_credit": credit_group.max_credit,
+            "description": credit_group.description,
+        }
+
+
 def add_user(user_id: str, credit_group_name: str, database_url: str = None):
     """Add the specified user to the credit group
 
