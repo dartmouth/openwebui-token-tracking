@@ -1,7 +1,13 @@
 import click
 from click.testing import CliRunner
-from .commands import database, pricing, credit_group, settings, user
+
+import json
 import os
+
+from .commands import database, pricing, credit_group, settings, user
+from openwebui_token_tracking.models import ModelPricingSchema
+from openwebui_token_tracking.db import upsert_model_pricing
+
 
 @click.group()
 def cli():
@@ -18,7 +24,14 @@ cli.add_command(user.user)
 
 
 @cli.command()
-def init():
+@click.option("--database-url", envvar="DATABASE_URL")
+@click.option(
+    "--json",
+    "json_file",
+    type=click.File("r"),
+    help="Read multiple models from a JSON file",
+)
+def init(database_url: str, json_file: str):
     """Initialize the token tracking tool with default settings"""
     runner = CliRunner()
 
@@ -31,19 +44,20 @@ def init():
         return result.exit_code
 
     click.echo("Adding pricing...")
-    print(os.path.realpath(__file__))
-    result = runner.invoke(
-        cli,
-        [
-            "pricing",
-            "upsert",
-            "--json",
-            f"{os.path.dirname(os.path.realpath(__file__))}/../resources/models.json",
-        ],
-    )
-    if result.exit_code != 0:
-        click.echo("Adding pricing failed!")
-        return result.exit_code
+    if not json_file:
+        json_file = open(
+            f"{os.path.dirname(os.path.realpath(__file__))}/../resources/models.json"
+        )
+
+    model_pricing_data = json.load(json_file)
+    model_pricing = [ModelPricingSchema(**m) for m in model_pricing_data]
+
+    for model in model_pricing:
+        upsert_model_pricing(
+            database_url=database_url,
+            model_id=model.id,
+            **model.model_dump(exclude=["id"]),
+        )
 
     click.echo("Initializing settings...")
     result = runner.invoke(cli, ["settings", "init"])
