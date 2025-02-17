@@ -137,7 +137,7 @@ def init_base_settings(database_url: str, settings: list[dict[str, str]] = None)
     engine = sa.create_engine(database_url)
     with Session(engine) as session:
         for setting in settings:
-            session.add(BaseSetting(**setting))
+            session.merge(BaseSetting(**setting))
         session.commit()
 
 

@@ -35,6 +35,7 @@ def with_credit_group(user):
         database_url=os.environ["DATABASE_URL"],
         credit_group_name="test credit group",
         credit_allowance=TEST_CREDIT_LIMIT,
+        description="Credit group for testing purposes.",
     )
     add_user(credit_group_name="test credit group", user_id=user["id"])
 

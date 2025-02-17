@@ -12,13 +12,19 @@ load_dotenv(find_dotenv())
 
 def test_create_credit_group():
     assert (
-        create_credit_group(credit_group_name="test_credit_group", credit_allowance=0)
+        create_credit_group(
+            credit_group_name="test_credit_group",
+            credit_allowance=0,
+            description="Delete me",
+        )
         is None
     )
 
     with pytest.raises(KeyError):
         create_credit_group(
-            credit_group_name="test_credit_group", credit_allowance=1000
+            credit_group_name="test_credit_group",
+            credit_allowance=1000,
+            description="Delete me",
         )
 
 
