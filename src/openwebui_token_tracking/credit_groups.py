@@ -196,3 +196,49 @@ def add_user(user_id: str, credit_group_name: str, database_url: str = None):
         user = session.query(User).filter_by(id=user_id).first()
         session.merge(CreditGroupUser(credit_group_id=credit_group.id, user_id=user.id))
         session.commit()
+
+
+def remove_user(user_id: str, credit_group_name: str, database_url: str = None):
+    """Removes a user from the specified credit group.
+
+    :param user_id: ID of the user to remove
+    :type user_id: str
+    :param credit_group_name: Name of the credit group to remove the user from
+    :type credit_group_name: str
+    :param database_url: URL of the database. If None, uses env variable
+    ``DATABASE_URL``
+    :type database_url: str, optional
+    :raises KeyError: Raised if the credit group of that name could not be found
+    :raises ValueError: Raised if the user is not in the specified credit group
+    """
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+    engine = db.create_engine(database_url)
+
+    with Session(engine) as session:
+        # Find the credit group
+        credit_group = (
+            session.query(CreditGroup).filter_by(name=credit_group_name).first()
+        )
+        if not credit_group:
+            raise KeyError(f"Could not find credit group: {credit_group_name}")
+
+        # Find the user
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            raise KeyError(f"Could not find user with ID: {user_id}")
+
+        # Find and delete the association
+        association = (
+            session.query(CreditGroupUser)
+            .filter_by(credit_group_id=credit_group.id, user_id=user.id)
+            .first()
+        )
+
+        if not association:
+            raise ValueError(
+                f"User {user_id} is not a member of credit group '{credit_group_name}'"
+            )
+
+        session.delete(association)
+        session.commit()
