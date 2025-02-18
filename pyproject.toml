@@ -25,6 +25,14 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/openwebui_token_tracking"]
 
+[dependency-groups]
+docs = [
+    "myst-parser>=4.0.1",
+    "sphinx>=8.1.3",
+    "sphinx-autodoc-typehints>=3.0.1",
+    "sphinx-rtd-theme>=3.0.2",
+]
+
 [tool.hatch.build]
 include = [
     "src/openwebui_token_tracking/**/*.py",

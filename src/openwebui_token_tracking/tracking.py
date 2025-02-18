@@ -82,8 +82,6 @@ class TokenTracker:
                 .filter(CreditGroupUser.user_id == user["id"])
                 .scalar()
             )
-        print(base_allowance)
-        print(group_allowances)
         return base_allowance + group_allowances
 
     def remaining_credits(self, user: dict) -> int:
