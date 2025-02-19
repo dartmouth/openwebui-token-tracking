@@ -30,7 +30,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("name", sa.String(length=255)),
-        sa.Column("sponsor_netid", sa.String(length=255)),
+        sa.Column("sponsor_id", sa.String(length=255)),
         sa.Column("total_credit_limit", sa.Integer(), nullable=False),
         sa.Column("daily_credit_limit", sa.Integer(), nullable=True),
         if_not_exists=True,
@@ -38,7 +38,7 @@ def upgrade() -> None:
     op.create_table(
         "token_tracking_sponsored_allowance_base_models",
         sa.Column(
-            "sponsored_model_id",
+            "sponsored_allowance_id",
             sa.UUID(as_uuid=True),
             sa.ForeignKey("token_tracking_sponsored_allowance.id"),
         ),

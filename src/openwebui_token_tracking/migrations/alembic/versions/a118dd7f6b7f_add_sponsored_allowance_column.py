@@ -19,7 +19,16 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def column_exists(table_name, column_name):
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    columns = [c["name"] for c in insp.get_columns(table_name)]
+    return column_name in columns
+
+
 def upgrade() -> None:
+    if column_exists("token_tracking_usage_log", "sponsored_allowance_id"):
+        return
     with op.batch_alter_table("token_tracking_usage_log") as batch_op:
         batch_op.add_column(
             sa.Column(
@@ -30,7 +39,7 @@ def upgrade() -> None:
                     name="fk_usage_log_sponsored_allowance",
                 ),
                 nullable=True,
-            )
+            ),
         )
 
 
