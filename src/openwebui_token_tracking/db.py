@@ -81,13 +81,13 @@ class ModelPricing(Base):
     per_output_tokens = sa.Column(sa.Integer())
 
 
-class SponsoredModelBaseModels(Base):
-    """SQLAlchemy model for the sponsored model base models association table"""
+class SponsoredAllowanceBaseModels(Base):
+    """SQLAlchemy model for the sponsored allowance base models association table"""
 
-    __tablename__ = "token_tracking_sponsored_model_base_models"
-    sponsored_model_id = sa.Column(
+    __tablename__ = "token_tracking_sponsored_allowance_base_models"
+    sponsored_allowance_id = sa.Column(
         sa.UUID(as_uuid=True),
-        sa.ForeignKey("token_tracking_sponsored_model.id"),
+        sa.ForeignKey("token_tracking_sponsored_allowance.id"),
         primary_key=True,
     )
     base_model_id = sa.Column(
@@ -95,14 +95,16 @@ class SponsoredModelBaseModels(Base):
         sa.ForeignKey("token_tracking_model_pricing.id"),
         primary_key=True,
     )
-    sponsored_model = relationship("SponsoredModel", back_populates="base_models")
+    sponsored_allowance = relationship(
+        "SponsoredAllowance", back_populates="base_models"
+    )
     base_model = relationship("ModelPricing")
 
 
-class SponsoredModel(Base):
-    """SQLAlchemy model for the sponsored model table"""
+class SponsoredAllowance(Base):
+    """SQLAlchemy model for the sponsored allowance table"""
 
-    __tablename__ = "token_tracking_sponsored_model"
+    __tablename__ = "token_tracking_sponsored_allowance"
     id = sa.Column(
         sa.UUID(as_uuid=True),
         primary_key=True,
@@ -116,9 +118,9 @@ class SponsoredModel(Base):
     name = sa.Column(sa.String(length=255))
     sponsor_netid = sa.Column(sa.String(length=255))
     base_models = relationship(
-        "SponsoredModelBaseModels", back_populates="sponsored_model"
+        "SponsoredAllowanceBaseModels", back_populates="sponsored_allowance"
     )
-    total_credit_limit = sa.Column(sa.Integer)
+    total_credit_limit = sa.Column(sa.Integer, nullable=False)
     """Total credit limit across all users and base models, i.e., maximum sponsored amount"""
     daily_credit_limit = sa.Column(sa.Integer, nullable=True)
     """Daily credit limit per user"""
@@ -136,9 +138,9 @@ class TokenUsageLog(Base):
     user_id = sa.Column(sa.String(length=255), primary_key=True)
     provider = sa.Column(sa.String(length=255), primary_key=True)
     model_id = sa.Column(sa.String(length=255), primary_key=True)
-    sponsored_model_id = sa.Column(
+    sponsored_allowance_id = sa.Column(
         sa.UUID(as_uuid=True),
-        sa.ForeignKey("sponsored_model.id"),
+        sa.ForeignKey("sponsored_allowance.id"),
         nullable=True,
     )
     prompt_tokens = sa.Column(sa.Integer())
