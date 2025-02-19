@@ -81,6 +81,49 @@ class ModelPricing(Base):
     per_output_tokens = sa.Column(sa.Integer())
 
 
+class SponsoredModelBaseModels(Base):
+    """SQLAlchemy model for the sponsored model base models association table"""
+
+    __tablename__ = "token_tracking_sponsored_model_base_models"
+    sponsored_model_id = sa.Column(
+        sa.UUID(as_uuid=True),
+        sa.ForeignKey("token_tracking_sponsored_model.id"),
+        primary_key=True,
+    )
+    base_model_id = sa.Column(
+        sa.String(length=255),
+        sa.ForeignKey("token_tracking_model_pricing.id"),
+        primary_key=True,
+    )
+    sponsored_model = relationship("SponsoredModel", back_populates="base_models")
+    base_model = relationship("ModelPricing")
+
+
+class SponsoredModel(Base):
+    """SQLAlchemy model for the sponsored model table"""
+
+    __tablename__ = "token_tracking_sponsored_model"
+    id = sa.Column(
+        sa.UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    creation_date = sa.Column(
+        sa.DateTime(timezone=True),
+        server_default=sa.text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
+    name = sa.Column(sa.String(length=255))
+    sponsor_netid = sa.Column(sa.String(length=255))
+    base_models = relationship(
+        "SponsoredModelBaseModels", back_populates="sponsored_model"
+    )
+    total_credit_limit = sa.Column(sa.Integer)
+    """Total credit limit across all users and base models, i.e., maximum sponsored amount"""
+    daily_credit_limit = sa.Column(sa.Integer, nullable=True)
+    """Daily credit limit per user"""
+
+
 class TokenUsageLog(Base):
     """SQLAlchemy model for the token usage log table"""
 
@@ -93,6 +136,11 @@ class TokenUsageLog(Base):
     user_id = sa.Column(sa.String(length=255), primary_key=True)
     provider = sa.Column(sa.String(length=255), primary_key=True)
     model_id = sa.Column(sa.String(length=255), primary_key=True)
+    sponsored_model_id = sa.Column(
+        sa.UUID(as_uuid=True),
+        sa.ForeignKey("sponsored_model.id"),
+        nullable=True,
+    )
     prompt_tokens = sa.Column(sa.Integer())
     response_tokens = sa.Column(sa.Integer())
 
