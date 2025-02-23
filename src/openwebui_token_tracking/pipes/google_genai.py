@@ -220,6 +220,6 @@ class GoogleTrackedPipe(BaseTrackedPipe):
 
         return tokens, response.text
 
-    def pipe(self, body, __user__):
+    def pipe(self, body, __user__, __metadata__):
         genai.configure(api_key=self.valves.GOOGLE_API_KEY)
-        return super().pipe(body, __user__)
+        return super().pipe(body, __user__, __metadata__)

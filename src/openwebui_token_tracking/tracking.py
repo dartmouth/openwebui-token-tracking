@@ -1,24 +1,162 @@
-from openwebui_token_tracking.db import (
-    TokenUsageLog,
-    CreditGroup,
-    CreditGroupUser,
-    BaseSetting,
-    ModelPricing,
-    ModelPricingSchema,
-)
+from openwebui_token_tracking.db import init_db
+from openwebui_token_tracking.db.token_usage import TokenUsageLog
+from openwebui_token_tracking.db.credit_group import CreditGroup, CreditGroupUser
+from openwebui_token_tracking.db.settings import BaseSetting
+from openwebui_token_tracking.db.model_pricing import ModelPricing
+from openwebui_token_tracking.models import ModelPricingSchema
+from openwebui_token_tracking.db.sponsored import SponsoredAllowance
 
 import sqlalchemy as db
 from sqlalchemy.orm import Session
 
 from datetime import datetime, UTC
 import logging
+from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
 
+class TokenLimitExceededError(Exception):
+    """Raised when a token limit was exceeded"""
+
+    pass
+
+
+class DailyTokenLimitExceededError(TokenLimitExceededError):
+    """Raised when a daily token limit was exceeded"""
+
+    pass
+
+
+class TotalTokenLimitExceededError(TokenLimitExceededError):
+    """Raised when a total token limit was exceeded"""
+
+    pass
+
+
 class TokenTracker:
     def __init__(self, db_url: str):
-        self.db_engine = db.create_engine(db_url)
+        self.db_engine = init_db(db_url)
+
+    def _calc_credits_from_tokens(
+        self, records: Iterable[tuple[str, int, int]], models: list[ModelPricingSchema]
+    ) -> int:
+        """Calculates the number of consumed credits from a series of token logs
+
+        :param records: A token log record consisting of the model ID, the number of
+        consumed input tokens, and the number of consumed output tokens
+        :type records: Iterable[tuple[str, int, int]]
+        :param models: A list of the pricing schemas of all models appearing in the records
+        :type models: list[ModelPricingSchema]
+        :return: Total number of credits used
+        :rtype: int
+        """
+        used_credits = 0
+        for row in records:
+            (cur_model, cur_prompt_tokens, cur_response_tokens) = row
+            model_data = next((item for item in models if item.id == cur_model), None)
+
+            model_cost = (
+                model_data.input_cost_credits / model_data.per_input_tokens
+            ) * cur_prompt_tokens + (
+                model_data.output_cost_credits / model_data.per_output_tokens
+            ) * cur_response_tokens
+
+            used_credits += model_cost
+        return used_credits
+
+    def _remaining_user_credits(
+        self, user: dict, sponsored_allowance_id: str | None
+    ) -> int:
+        """Return user's remaining daily credits.
+
+        If the ID of a sponsored allowance is provided, the daily credit limit is
+        calculated considering only the daily limit from that allowance.
+        Otherwise, the remaining credits are calculated using the user's group allowances.
+
+        :param user_id: User
+        :type user_id: dict
+        :param sponsored_allowance_id: ID of a sponsored allowance to consider
+        :type sponsored_allowane_id: str, optional
+        :return: Remaining credits
+        :rtype: int
+        """
+
+        with Session(self.db_engine) as session:
+            # Different backends use different datetime syntax
+            is_sqlite = str(db.engine.url).startswith("sqlite")
+            current_date = (
+                db.text('date("now")') if is_sqlite else db.func.current_date()
+            )
+            logger.debug(current_date)
+            models = self.get_models()
+            model_list = [m.id for m in models]
+            query = (
+                db.select(
+                    TokenUsageLog.model_id,
+                    db.func.sum(TokenUsageLog.prompt_tokens).label("prompt_tokens_sum"),
+                    db.func.sum(TokenUsageLog.response_tokens).label(
+                        "response_tokens_sum"
+                    ),
+                )
+                .where(
+                    TokenUsageLog.user_id == user["id"],
+                    db.func.date(TokenUsageLog.log_date) == current_date,
+                    TokenUsageLog.model_id.in_(model_list),
+                    TokenUsageLog.sponsored_allowance_id == sponsored_allowance_id,
+                )
+                .group_by(TokenUsageLog.model_id)
+            )
+            results = session.execute(query).fetchall()
+
+            used_daily_credits = self._calc_credits_from_tokens(
+                records=results, models=models
+            )
+
+        return self.max_credits(user) - int(used_daily_credits)
+
+    def _remaining_sponsored_credits(self, sponsored_allowance_id: str):
+        """Get remaining credits in a sponsored allowance
+
+        :param sponsored_allowance_id: ID of the sponsored allowance
+        :type sponsored_allowance_id: str
+        :return: Remaining credits in the allowance
+        :rtype: int
+        """
+
+        with Session(self.db_engine) as session:
+            query = db.select(
+                SponsoredAllowance.creation_date,
+                SponsoredAllowance.total_credit_limit,
+                SponsoredAllowance.daily_credit_limit,
+            ).where(SponsoredAllowance.id == sponsored_allowance_id)
+
+            creation_date, total_credit_limit, _ = session.execute(query).first()
+
+            models = self.get_models()
+            model_list = [m.id for m in models]
+
+            query = (
+                db.select(
+                    TokenUsageLog.model_id,
+                    db.func.sum(TokenUsageLog.prompt_tokens).label("prompt_tokens_sum"),
+                    db.func.sum(TokenUsageLog.response_tokens).label(
+                        "response_tokens_sum"
+                    ),
+                )
+                .where(
+                    TokenUsageLog.sponsored_allowance_id == sponsored_allowance_id,
+                    db.func.date(TokenUsageLog.log_date) >= creation_date,
+                    TokenUsageLog.model_id.in_(model_list),
+                )
+                .group_by(TokenUsageLog.model_id)
+            )
+            results = session.execute(query).fetchall()
+
+            total_credits_used = self._calc_credits_from_tokens(
+                records=results, models=models
+            )
+            return total_credit_limit - total_credits_used
 
     def get_models(
         self, provider: str = None, id: str = None
@@ -59,87 +197,67 @@ class TokenTracker:
             )
         return model[0].input_cost_credits > 0 or model[0].output_cost_credits > 0
 
-    def max_credits(self, user: dict) -> int:
-        """Get a user's maximum daily credits
+    def max_credits(self, user: dict, sponsored_allowance_id: str = None) -> int:
+        """Get a user's maximum daily credits.
 
         :param user: User
         :type user: dict
+        :param sponsored_allowance_id: ID of the sponsored allowance to consider
+        :type sponsored_allowance_id: str, optional
         :return: Maximum daily credit allowance
         :rtype: int
         """
         with Session(self.db_engine) as session:
-            base_allowance = int(
-                session.query(BaseSetting)
-                .filter(BaseSetting.setting_key == "base_credit_allowance")
-                .scalar()
-                .setting_value
-            )
-            group_allowances = (
-                session.query(db.func.coalesce(db.func.sum(CreditGroup.max_credit), 0))
-                .join(
-                    CreditGroupUser, CreditGroup.id == CreditGroupUser.credit_group_id
+            if sponsored_allowance_id is None:
+                base_allowance = int(
+                    session.query(BaseSetting)
+                    .filter(BaseSetting.setting_key == "base_credit_allowance")
+                    .scalar()
+                    .setting_value
                 )
-                .filter(CreditGroupUser.user_id == user["id"])
-                .scalar()
-            )
-        return base_allowance + group_allowances
+                group_allowances = (
+                    session.query(
+                        db.func.coalesce(db.func.sum(CreditGroup.max_credit), 0)
+                    )
+                    .join(
+                        CreditGroupUser,
+                        CreditGroup.id == CreditGroupUser.credit_group_id,
+                    )
+                    .filter(CreditGroupUser.user_id == user["id"])
+                    .scalar()
+                )
+                max_credits = base_allowance + group_allowances
+            else:
+                max_credits = session.query(
+                    SponsoredAllowance.daily_credit_limit
+                ).filter(SponsoredAllowance.id == sponsored_allowance_id)
 
-    def remaining_credits(self, user: dict) -> int:
-        """Get a user's remaining credits
+        return max_credits
+
+    def remaining_credits(
+        self, user: dict, sponsored_allowance_id: str = None
+    ) -> tuple[int, int]:
+        """Get remaining credits for the specified user and sponsored
+        allowance.
 
         :param user_id: User
         :type user_id: dict
-        :return: Remaining credits
-        :rtype: int
+        :param sponsored_allowance_id: ID of the sponsored allowance
+        :type sponsored_allowance_id: str, optional
+        :return: Remaining daily credits available to the user, and in the sponsored
+        allowance (if specified)
+        :rtype: tuple[int, int]
         """
         logger.info("Checking remaining credits...")
-        with Session(self.db_engine) as session:
-            # Different backends use different datetime syntax
-            is_sqlite = str(db.engine.url).startswith("sqlite")
-            current_date = (
-                db.text('date("now")') if is_sqlite else db.func.current_date()
+        user_credits_remaining = self._remaining_user_credits(
+            user, sponsored_allowance_id
+        )
+        total_sponsored_credits_remaining = None
+        if sponsored_allowance_id:
+            total_sponsored_credits_remaining = self._remaining_sponsored_credits(
+                sponsored_allowance_id
             )
-            logger.debug(current_date)
-            models = self.get_models()
-            model_list = [m.id for m in models]
-            query = (
-                db.select(
-                    TokenUsageLog.model_id,
-                    db.func.sum(TokenUsageLog.prompt_tokens).label("prompt_tokens_sum"),
-                    db.func.sum(TokenUsageLog.response_tokens).label(
-                        "response_tokens_sum"
-                    ),
-                )
-                .where(
-                    TokenUsageLog.user_id == user["id"],
-                    db.func.date(TokenUsageLog.log_date) == current_date,
-                    TokenUsageLog.model_id.in_(model_list),
-                )
-                .group_by(TokenUsageLog.model_id)
-            )
-            results = session.execute(query).fetchall()
-
-        used_daily_credits = 0
-        for row in results:
-            (cur_model, cur_prompt_tokens_sum, cur_response_tokens_sum) = row
-            model_data = next((item for item in models if item.id == cur_model), None)
-
-            model_cost_today = (
-                model_data.input_cost_credits / model_data.per_input_tokens
-            ) * cur_prompt_tokens_sum + (
-                model_data.output_cost_credits / model_data.per_output_tokens
-            ) * cur_response_tokens_sum
-
-            used_daily_credits += model_cost_today
-
-            logging.info(
-                f"Date: {datetime.now(UTC)}Z | Email: {user.get('email')} "
-                f"| Model: {cur_model} | Prompt Tokens: {cur_prompt_tokens_sum} "
-                f"| Response Tokens: {cur_response_tokens_sum} "
-                f"| Cost today: {model_cost_today}"
-            )
-
-        return self.max_credits(user) - int(used_daily_credits)
+        return user_credits_remaining, total_sponsored_credits_remaining
 
     def log_token_usage(
         self,
@@ -148,6 +266,7 @@ class TokenTracker:
         user: dict,
         prompt_tokens: int,
         response_tokens: int,
+        sponsored_allowance_id: str = None,
     ):
         """Log the used tokens in the database
 
@@ -161,8 +280,10 @@ class TokenTracker:
         :type prompt_tokens: int
         :param response_tokens: Number of tokens in the response (output tokens)
         :type response_tokens: int
+        :param sponsored_allowance_id: ID of the sponsored allowance to apply
+        :type sponsored_allowance_id: str, optional
         """
-        logging.info(
+        logging.debug(
             f"Date: {datetime.now(UTC)}Z | Email: {user.get('email')} "
             f"| Model: {model_id} | Prompt Tokens: {prompt_tokens} "
             f"| Response Tokens: {response_tokens}"
@@ -176,6 +297,7 @@ class TokenTracker:
                     model_id=model_id,
                     prompt_tokens=prompt_tokens,
                     response_tokens=response_tokens,
+                    sponsored_allowance_id=sponsored_allowance_id,
                     log_date=datetime.now(),
                 )
             )

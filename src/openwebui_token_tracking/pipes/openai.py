@@ -157,7 +157,7 @@ class OpenAITrackedPipe(BaseTrackedPipe):
         self.url = f"{self.valves.API_BASE_URL.rstrip('/')}/v1/chat/completions"
         return super().pipes()
 
-    def pipe(self, body, __user__):
+    def pipe(self, body, __user__, __metadata__):
         self.provider = self.valves.PROVIDER
         self.url = f"{self.valves.API_BASE_URL.rstrip('/')}/v1/chat/completions"
-        return super().pipe(body, __user__)
+        return super().pipe(body, __user__, __metadata__)

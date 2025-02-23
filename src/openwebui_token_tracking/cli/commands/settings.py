@@ -1,5 +1,5 @@
 import click
-import openwebui_token_tracking.db
+from openwebui_token_tracking.settings import init_base_settings
 
 
 @click.group(name="settings")
@@ -18,4 +18,4 @@ def init(
     DATABASE-URL is expected to be in SQLAlchemy format.
     """
 
-    return openwebui_token_tracking.db.init_base_settings(database_url=database_url)
+    return init_base_settings(database_url=database_url)

@@ -4,9 +4,9 @@ from click.testing import CliRunner
 import json
 import os
 
-from .commands import database, pricing, credit_group, settings, user
+from .commands import database, pricing, credit_group, settings, sponsored, user
 from openwebui_token_tracking.models import ModelPricingSchema
-from openwebui_token_tracking.db import upsert_model_pricing
+from openwebui_token_tracking.model_pricing import upsert_model_pricing
 
 
 @click.group()
@@ -20,6 +20,7 @@ cli.add_command(database.database)
 cli.add_command(pricing.pricing)
 cli.add_command(credit_group.credit_group)
 cli.add_command(settings.settings)
+cli.add_command(sponsored.sponsored)
 cli.add_command(user.user)
 
 

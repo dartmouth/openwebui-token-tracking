@@ -12,16 +12,30 @@ Classes:
 """
 
 from abc import ABC, abstractmethod
+import datetime
 import os
 from typing import Any, List, Union, Generator, Iterator, Tuple
 
 import requests
 
 from openwebui_token_tracking import TokenTracker
+from openwebui_token_tracking.tracking import (
+    TokenLimitExceededError,
+    DailyTokenLimitExceededError,
+    TotalTokenLimitExceededError,
+)
 
 
-class TokenLimitExceededError(Exception):
-    pass
+def _time_to_midnight():
+    now = datetime.datetime.now()
+    remaining_hours = 24 - now.hour - 1
+    remaining_minutes = 60 - now.minute
+    remaining_seconds = 60 - now.second
+
+    time_to_midnight = datetime.timedelta(
+        hours=remaining_hours, minutes=remaining_minutes, seconds=remaining_seconds
+    )
+    return time_to_midnight
 
 
 class RequestError(Exception):
@@ -59,7 +73,9 @@ class BaseTrackedPipe(ABC):
         self.valves = self.Valves()
         self.token_tracker = TokenTracker(os.environ[BaseTrackedPipe.DATABASE_URL_ENV])
 
-    def _check_limits(self, model_id: str, user: dict) -> bool:
+    def _check_limits(
+        self, model_id: str, user: dict, sponsored_allowance_id: str = None
+    ) -> bool:
         """
         Check if the user has exceeded their token usage limits.
 
@@ -67,25 +83,50 @@ class BaseTrackedPipe(ABC):
         :type model_id: str
         :param user: User information dictionary
         :type user: dict
+        :param sponsored_allowance_id: The ID of the sponsored allowance
+        :type model_id: str, optional
         :raises TokenLimitExceededError: If user has exceeded their daily token limit
         :return: True if within limits
         :rtype: bool
         """
+        if not self.token_tracker.is_paid(model_id):
+            return True
+
+        daily_credits_remaining, total_sponsored_credits_remaining = (
+            self.token_tracker.remaining_credits(user, sponsored_allowance_id)
+        )
+
         if (
-            self.token_tracker.is_paid(model_id)
-            and self.token_tracker.remaining_credits(user) <= 0
+            total_sponsored_credits_remaining is not None
+            and total_sponsored_credits_remaining <= 0
         ):
+            TotalTokenLimitExceededError(
+                f"""The total credit limit for the sponsored allowance {sponsored_allowance_id}
+                has been exceeded. Please contact the sponsor to add more credits, or choose
+                a different model.
+                """
+            )
+        elif sponsored_allowance_id is not None and daily_credits_remaining <= 0:
+            max_credits = self.token_tracker.max_credits(user, sponsored_allowance_id)
+            DailyTokenLimitExceededError(
+                f"""You've exceeded the daily usage limit ({max_credits} credits) for
+                the sponsored allowance {sponsored_allowance_id}. Your usage will reset in {_time_to_midnight()}.
+                Until then, please use a different model. """
+            )
+
+        else:
             free_models = [
                 m
                 for m in self.token_tracker.get_models()
                 if not self.token_tracker.is_paid(m.id)
             ]
-            raise TokenLimitExceededError(
-                f"""You've exceeded the daily usage limit ({self.token_tracker.max_credits(user)} credits) for the paid AI models.
+            max_credits = self.token_tracker.max_credits(user)
+            raise DailyTokenLimitExceededError(
+                f"""You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models.
+                    Your usage will reset in {_time_to_midnight()}.
                     IMPORTANT: Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.
                     """
             )
-        return True
 
     @abstractmethod
     def _headers(self) -> dict:
@@ -186,7 +227,9 @@ class BaseTrackedPipe(ABC):
         """
         return self.get_models()
 
-    def pipe(self, body: dict, __user__: dict) -> Union[str, Generator, Iterator]:
+    def pipe(
+        self, body: dict, __user__: dict, __metadata__: dict
+    ) -> Union[str, Generator, Iterator]:
         """
         Process an incoming request through the appropriate model pipeline.
 
@@ -200,11 +243,18 @@ class BaseTrackedPipe(ABC):
         :type body: dict
         :param __user__: User information for token tracking
         :type __user__: dict
+        :param __metadata__: Additional metadata for the request
+        :type __metadata__: dict
         :return: Either a string response or a generator for streaming responses
         :rtype: Union[str, Generator, Iterator]
         :raises TokenLimitExceededError: If user has exceeded their token limit
         :raises RequestError: If the API request fails
         """
+        model = __metadata__.get("model")
+        sponsored_allowance_id = None
+        if model:
+            sponsored_allowance_id, *_ = model.id.split("-")
+
         model_id = body.get("model").replace(
             self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
         )
@@ -214,7 +264,11 @@ class BaseTrackedPipe(ABC):
             # message. At some point this broke upstream, so we will need to wait
             # until it gets fixed. Until then, we return just a message so the user
             # at least gets some feedback.
-            self._check_limits(model_id=model_id, user=__user__)
+            self._check_limits(
+                model_id=model_id,
+                user=__user__,
+                sponsored_allowance_id=sponsored_allowance_id,
+            )
         except TokenLimitExceededError as e:
             return str(e)
 
@@ -316,3 +370,7 @@ class BaseTrackedPipe(ABC):
         except Exception as e:
             print(f"Error in non_stream_response: {e}")
             return f"Error: {e}"
+
+
+if __name__ == "__main__":
+    print(_time_to_midnight())
