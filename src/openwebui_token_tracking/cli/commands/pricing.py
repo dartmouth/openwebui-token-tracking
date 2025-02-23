@@ -1,7 +1,7 @@
 import click
 import json
 from openwebui_token_tracking import models
-import openwebui_token_tracking.db
+import openwebui_token_tracking.db.db
 
 
 @click.group(name="pricing")
@@ -18,7 +18,7 @@ def list_pricing(database_url: str, provider: str | None):
 
     DATABASE-URL is expected to be in SQLAlchemy format.
     """
-    models = openwebui_token_tracking.db.list_model_pricing(
+    models = openwebui_token_tracking.db.db.list_model_pricing(
         database_url=database_url, provider=provider
     )
     for model in models:
@@ -38,7 +38,7 @@ def get_pricing(database_url: str, model_id: str, provider: str | None):
     If --provider is not specified, returns all models with matching ID
     across providers.
     """
-    models = openwebui_token_tracking.db.get_model_pricing(
+    models = openwebui_token_tracking.db.db.get_model_pricing(
         database_url=database_url,
         model_id=model_id,
         provider=provider,
@@ -163,7 +163,7 @@ def update_pricing(
                     )
 
                 print(database_url, model_id, provider, update)
-                openwebui_token_tracking.db.update_model_pricing(
+                openwebui_token_tracking.db.db.update_model_pricing(
                     database_url=database_url,
                     model_id=model_id,
                     provider=provider,
@@ -194,7 +194,7 @@ def update_pricing(
         if not updates:
             raise click.UsageError("No updates specified")
 
-        return openwebui_token_tracking.db.update_model_pricing(
+        return openwebui_token_tracking.db.db.update_model_pricing(
             database_url=database_url,
             model_id=model_id,
             provider=provider,
@@ -312,7 +312,7 @@ def upsert_pricing(
                 model_id = model.pop("id")
                 provider = model.pop("provider")
 
-                openwebui_token_tracking.db.upsert_model_pricing(
+                openwebui_token_tracking.db.db.upsert_model_pricing(
                     database_url=database_url,
                     provider=provider,
                     model_id=model_id,
@@ -345,7 +345,7 @@ def upsert_pricing(
                 "All fields are required when upserting a model"
             )
 
-        return openwebui_token_tracking.db.upsert_model_pricing(
+        return openwebui_token_tracking.db.db.upsert_model_pricing(
             database_url=database_url,
             provider=provider,
             model_id=model_id,
@@ -379,7 +379,7 @@ def delete_pricing(
     If --provider is not specified, will prompt for confirmation before
     deleting all models with matching ID across providers.
     """
-    models = openwebui_token_tracking.db.get_model_pricing(
+    models = openwebui_token_tracking.db.db.get_model_pricing(
         database_url=database_url,
         model_id=model_id,
         provider=provider,
@@ -397,7 +397,7 @@ def delete_pricing(
             click.echo("Aborted")
             return
 
-    return openwebui_token_tracking.db.delete_model_pricing(
+    return openwebui_token_tracking.db.db.delete_model_pricing(
         database_url=database_url,
         model_id=model_id,
         provider=provider,
@@ -498,7 +498,7 @@ def add_pricing(
             )
         ]
 
-    return openwebui_token_tracking.db.add_model_pricing(
+    return openwebui_token_tracking.db.db.add_model_pricing(
         database_url=database_url,
         model_pricing=model_pricing,
     )

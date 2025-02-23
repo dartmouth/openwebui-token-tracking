@@ -1,5 +1,5 @@
 import click
-import openwebui_token_tracking.db
+import openwebui_token_tracking.db.db
 
 
 @click.group(name="user")
@@ -19,7 +19,7 @@ def find(database_url: str, user_id: str | None, name: str | None, email: str | 
     and email.
     """
     try:
-        result = openwebui_token_tracking.db.find_user(
+        result = openwebui_token_tracking.db.db.find_user(
             database_url=database_url,
             user_id=user_id,
             name=name,

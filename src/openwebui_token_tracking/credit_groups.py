@@ -1,7 +1,9 @@
 import sqlalchemy as db
 from sqlalchemy.orm import Session
 
-from openwebui_token_tracking.db import CreditGroup, CreditGroupUser, User
+from openwebui_token_tracking.db import init_db
+from openwebui_token_tracking.db.credit_group import CreditGroup, CreditGroupUser
+from openwebui_token_tracking.db.user import User
 
 import os
 
@@ -27,7 +29,7 @@ def create_credit_group(
 
     if database_url is None:
         database_url = os.environ["DATABASE_URL"]
-    engine = db.create_engine(database_url)
+    engine = init_db(database_url)
 
     with Session(engine) as session:
         # Make sure credit group of that name does not already exist
@@ -66,7 +68,7 @@ def get_credit_group(credit_group_name: str, database_url: str = None) -> dict:
     if database_url is None:
         database_url = os.environ["DATABASE_URL"]
 
-    engine = db.create_engine(database_url)
+    engine = init_db(database_url)
     with Session(engine) as session:
         credit_group = (
             session.query(CreditGroup).filter_by(name=credit_group_name).first()
@@ -92,7 +94,7 @@ def list_credit_groups(database_url: str = None) -> list[dict]:
     """
     if database_url is None:
         database_url = os.environ["DATABASE_URL"]
-    engine = db.create_engine(database_url)
+    engine = init_db(database_url)
 
     with Session(engine) as session:
         credit_groups = session.query(CreditGroup).all()
@@ -136,7 +138,7 @@ def delete_credit_group(
     """
     if database_url is None:
         database_url = os.environ["DATABASE_URL"]
-    engine = db.create_engine(database_url)
+    engine = init_db(database_url)
 
     with Session(engine) as session:
         # Find the credit group
@@ -183,7 +185,7 @@ def add_user(user_id: str, credit_group_name: str, database_url: str = None):
     """
     if database_url is None:
         database_url = os.environ["DATABASE_URL"]
-    engine = db.create_engine(database_url)
+    engine = init_db(database_url)
 
     with Session(engine) as session:
         credit_group = (
@@ -213,7 +215,7 @@ def remove_user(user_id: str, credit_group_name: str, database_url: str = None):
     """
     if database_url is None:
         database_url = os.environ["DATABASE_URL"]
-    engine = db.create_engine(database_url)
+    engine = init_db(database_url)
 
     with Session(engine) as session:
         # Find the credit group
