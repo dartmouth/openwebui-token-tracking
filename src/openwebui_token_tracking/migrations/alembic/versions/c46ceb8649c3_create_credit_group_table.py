@@ -39,6 +39,14 @@ def upgrade() -> None:
         if_not_exists=True,
     )
 
+    op.create_index(
+        "idx_token_tracking_credit_group_name_lower",
+        "token_tracking_credit_group",
+        [sa.text("lower(name)")],
+        unique=True,
+        if_not_exists=True,
+    )
+
 
 def downgrade() -> None:
     op.drop_table("token_tracking_credit_group_users")

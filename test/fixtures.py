@@ -1,15 +1,36 @@
 import pytest
-import sqlalchemy as db
 from sqlalchemy.orm import Session
 
+from openwebui_token_tracking import TokenTracker
 from openwebui_token_tracking.db import init_db
 from openwebui_token_tracking.db.user import User
-from openwebui_token_tracking.credit_groups import add_user, create_credit_group
+from openwebui_token_tracking.credit_groups import (
+    add_user,
+    create_credit_group,
+    get_credit_group,
+)
+from openwebui_token_tracking.sponsored import (
+    create_sponsored_allowance,
+    get_sponsored_allowance,
+)
 
 import os
 
-TEST_CREDIT_LIMIT = 2000
+
 BASE_ALLOWANCE = 1000
+TEST_CREDIT_GROUP_NAME = "test credit group"
+TEST_CREDIT_GROUP_LIMIT = 2000
+
+TEST_SPONSORED_ALLOWANCE_SPONSOR = "f12345"
+TEST_SPONSORED_ALLOWANCE_NAME = "test sponsored allowance"
+TEST_SPONSORED_ALLOWANCE_MODELS = ["mistral-small-2409", "claude-3-5-haiku-20241022"]
+TEST_SPONSORED_ALLOWANCE_DAILY_LIMIT = 500
+TEST_SPONSORED_ALLOWANCE_TOTAL_LIMIT = 10000
+
+
+@pytest.fixture
+def tracker():
+    return TokenTracker(db_url=os.environ["DATABASE_URL"])
 
 
 @pytest.fixture
@@ -33,13 +54,37 @@ def user():
 
 @pytest.fixture
 def with_credit_group(user):
-    create_credit_group(
-        database_url=os.environ["DATABASE_URL"],
-        credit_group_name="test credit group",
-        credit_allowance=TEST_CREDIT_LIMIT,
-        description="Credit group for testing purposes.",
-    )
-    add_user(credit_group_name="test credit group", user_id=user["id"])
+    try:
+        cg = get_credit_group(
+            database_url=os.environ["DATABASE_URL"],
+            credit_group_name=TEST_CREDIT_GROUP_NAME,
+        )
+    except KeyError:
+        create_credit_group(
+            database_url=os.environ["DATABASE_URL"],
+            credit_group_name=TEST_CREDIT_GROUP_NAME,
+            credit_allowance=TEST_CREDIT_GROUP_LIMIT,
+            description="Credit group for testing purposes.",
+        )
+        add_user(credit_group_name=TEST_CREDIT_GROUP_NAME, user_id=user["id"])
+
+
+@pytest.fixture
+def with_sponsored_allowance():
+    try:
+        sa = get_sponsored_allowance(
+            database_url=os.environ["DATABASE_URL"],
+            name=TEST_SPONSORED_ALLOWANCE_NAME,
+        )
+    except KeyError:
+        create_sponsored_allowance(
+            database_url=os.environ["DATABASE_URL"],
+            sponsor_id=TEST_SPONSORED_ALLOWANCE_SPONSOR,
+            name=TEST_SPONSORED_ALLOWANCE_NAME,
+            models=TEST_SPONSORED_ALLOWANCE_MODELS,
+            daily_credit_limit=TEST_SPONSORED_ALLOWANCE_DAILY_LIMIT,
+            total_credit_limit=TEST_SPONSORED_ALLOWANCE_TOTAL_LIMIT,
+        )
 
 
 @pytest.fixture

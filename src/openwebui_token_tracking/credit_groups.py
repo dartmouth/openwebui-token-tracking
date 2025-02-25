@@ -120,6 +120,106 @@ def list_credit_groups(database_url: str = None) -> list[dict]:
         return formatted_groups
 
 
+def update_credit_group(
+    credit_group_name: str,
+    new_credit_allowance: int = None,
+    new_description: str = None,
+    new_name: str = None,
+    database_url: str = None,
+):
+    """Updates an existing credit group in the database.
+
+    :param credit_group_name: Name of the credit group to update
+    :type credit_group_name: str
+    :param new_credit_allowance: New maximum credit allowance for the group
+    :type new_credit_allowance: int, optional
+    :param new_description: New description for the group
+    :type new_description: str, optional
+    :param new_name: New name for the group
+    :type new_name: str, optional
+    :param database_url: URL of the database. If None, uses env variable ``DATABASE_URL``
+    :type database_url: str, optional
+    :raises KeyError: Raised if the credit group of that name could not be found
+    :raises ValueError: Raised if no updates are specified
+    """
+    if all(
+        param is None for param in [new_credit_allowance, new_description, new_name]
+    ):
+        raise ValueError("At least one update parameter must be specified")
+
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+
+    engine = init_db(database_url)
+    with Session(engine) as session:
+        credit_group = (
+            session.query(CreditGroup).filter_by(name=credit_group_name).first()
+        )
+        if not credit_group:
+            raise KeyError(f"Could not find credit group: {credit_group_name}")
+
+        # Update fields if new values are provided
+        if new_credit_allowance is not None:
+            credit_group.max_credit = new_credit_allowance
+        if new_description is not None:
+            credit_group.description = new_description
+        if new_name is not None:
+            # Check if new name already exists
+            existing = session.query(CreditGroup).filter_by(name=new_name).first()
+            if existing and existing.id != credit_group.id:
+                raise KeyError(f"A credit group with name '{new_name}' already exists")
+            credit_group.name = new_name
+
+        session.commit()
+
+
+def upsert_credit_group(
+    credit_group_name: str,
+    credit_allowance: int,
+    description: str,
+    database_url: str = None,
+) -> bool:
+    """Creates a new credit group or updates an existing one if it already exists.
+
+    :param credit_group_name: Name of the credit group
+    :type credit_group_name: str
+    :param credit_allowance: Maximum credit allowance for the group
+    :type credit_allowance: int
+    :param description: Description of the credit group
+    :type description: str
+    :param database_url: URL of the database. If None, uses env variable ``DATABASE_URL``
+    :type database_url: str, optional
+    :return: True if a new group was created, False if an existing group was updated
+    :rtype: bool
+    """
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+
+    engine = init_db(database_url)
+    with Session(engine) as session:
+        credit_group = (
+            session.query(CreditGroup).filter_by(name=credit_group_name).first()
+        )
+
+        if credit_group:
+            # Update existing group
+            credit_group.max_credit = credit_allowance
+            credit_group.description = description
+            session.commit()
+            return False
+        else:
+            # Create new group
+            session.add(
+                CreditGroup(
+                    name=credit_group_name,
+                    max_credit=credit_allowance,
+                    description=description,
+                )
+            )
+            session.commit()
+            return True
+
+
 def delete_credit_group(
     credit_group_name: str, database_url: str = None, force: bool = False
 ):
@@ -244,3 +344,48 @@ def remove_user(user_id: str, credit_group_name: str, database_url: str = None):
 
         session.delete(association)
         session.commit()
+
+
+def list_users(credit_group_name: str, database_url: str = None) -> list[dict]:
+    """Lists all users in a specific credit group.
+
+    :param credit_group_name: Name of the credit group to list users from
+    :type credit_group_name: str
+    :param database_url: URL of the database. If None, uses env variable ``DATABASE_URL``
+    :type database_url: str, optional
+    :return: List of dictionaries containing user information
+    :rtype: list[dict]
+    :raises KeyError: Raised if the credit group of that name could not be found
+    """
+    if database_url is None:
+        database_url = os.environ["DATABASE_URL"]
+
+    engine = init_db(database_url)
+    with Session(engine) as session:
+        # Find the credit group
+        credit_group = (
+            session.query(CreditGroup).filter_by(name=credit_group_name).first()
+        )
+        if not credit_group:
+            raise KeyError(f"Could not find credit group: {credit_group_name}")
+
+        # Query users in the group
+        users = (
+            session.query(User)
+            .join(CreditGroupUser)
+            .filter(CreditGroupUser.credit_group_id == credit_group.id)
+            .all()
+        )
+
+        # Format user information
+        user_list = []
+        for user in users:
+            user_list.append(
+                {
+                    "id": str(user.id),  # Convert UUID to string
+                    "name": user.name,
+                    "email": user.email,
+                }
+            )
+
+        return user_list

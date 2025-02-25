@@ -5,13 +5,16 @@ from openwebui_token_tracking.db.settings import BaseSetting
 from openwebui_token_tracking.db.model_pricing import ModelPricing
 from openwebui_token_tracking.models import ModelPricingSchema
 from openwebui_token_tracking.db.sponsored import SponsoredAllowance
+from openwebui_token_tracking.sponsored import get_sponsored_allowance
+
 
 import sqlalchemy as db
 from sqlalchemy.orm import Session
 
-from datetime import datetime, UTC
+from datetime import datetime, date, UTC
 import logging
 from typing import Iterable
+from uuid import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +40,7 @@ class TotalTokenLimitExceededError(TokenLimitExceededError):
 class TokenTracker:
     def __init__(self, db_url: str):
         self.db_engine = init_db(db_url)
+        self.db_url = db_url
 
     def _calc_credits_from_tokens(
         self, records: Iterable[tuple[str, int, int]], models: list[ModelPricingSchema]
@@ -66,31 +70,28 @@ class TokenTracker:
         return used_credits
 
     def _remaining_user_credits(
-        self, user: dict, sponsored_allowance_id: str | None
+        self, user: dict, sponsored_allowance_id: UUID | None
     ) -> int:
         """Return user's remaining daily credits.
 
-        If the ID of a sponsored allowance is provided, the daily credit limit is
+        If the name of a sponsored allowance is provided, the daily credit limit is
         calculated considering only the daily limit from that allowance.
         Otherwise, the remaining credits are calculated using the user's group allowances.
 
         :param user_id: User
         :type user_id: dict
         :param sponsored_allowance_id: ID of a sponsored allowance to consider
-        :type sponsored_allowane_id: str, optional
+        :type sponsored_allowance_id: UUID, optional
         :return: Remaining credits
         :rtype: int
         """
 
         with Session(self.db_engine) as session:
-            # Different backends use different datetime syntax
-            is_sqlite = str(db.engine.url).startswith("sqlite")
-            current_date = (
-                db.text('date("now")') if is_sqlite else db.func.current_date()
-            )
+            current_date = date.today()
             logger.debug(current_date)
             models = self.get_models()
             model_list = [m.id for m in models]
+
             query = (
                 db.select(
                     TokenUsageLog.model_id,
@@ -113,7 +114,9 @@ class TokenTracker:
                 records=results, models=models
             )
 
-        return self.max_credits(user) - int(used_daily_credits)
+        return self.max_credits(
+            user, sponsored_allowance_id=sponsored_allowance_id
+        ) - int(used_daily_credits)
 
     def _remaining_sponsored_credits(self, sponsored_allowance_id: str):
         """Get remaining credits in a sponsored allowance
@@ -128,10 +131,9 @@ class TokenTracker:
             query = db.select(
                 SponsoredAllowance.creation_date,
                 SponsoredAllowance.total_credit_limit,
-                SponsoredAllowance.daily_credit_limit,
             ).where(SponsoredAllowance.id == sponsored_allowance_id)
 
-            creation_date, total_credit_limit, _ = session.execute(query).first()
+            creation_date, total_credit_limit = session.execute(query).first()
 
             models = self.get_models()
             model_list = [m.id for m in models]
@@ -146,7 +148,7 @@ class TokenTracker:
                 )
                 .where(
                     TokenUsageLog.sponsored_allowance_id == sponsored_allowance_id,
-                    db.func.date(TokenUsageLog.log_date) >= creation_date,
+                    db.func.date(TokenUsageLog.log_date) <= creation_date,
                     TokenUsageLog.model_id.in_(model_list),
                 )
                 .group_by(TokenUsageLog.model_id)
@@ -156,7 +158,7 @@ class TokenTracker:
             total_credits_used = self._calc_credits_from_tokens(
                 records=results, models=models
             )
-            return total_credit_limit - total_credits_used
+            return int(total_credit_limit - total_credits_used)
 
     def get_models(
         self, provider: str = None, id: str = None
@@ -197,18 +199,30 @@ class TokenTracker:
             )
         return model[0].input_cost_credits > 0 or model[0].output_cost_credits > 0
 
-    def max_credits(self, user: dict, sponsored_allowance_id: str = None) -> int:
+    def max_credits(
+        self,
+        user: dict,
+        sponsored_allowance_name: str = None,
+        sponsored_allowance_id: UUID = None,
+    ) -> int:
         """Get a user's maximum daily credits.
 
         :param user: User
         :type user: dict
+        :param sponsored_allowance_name: Name of the sponsored allowance to consider
+        :type sponsored_allowance_name: str, optional
         :param sponsored_allowance_id: ID of the sponsored allowance to consider
         :type sponsored_allowance_id: str, optional
         :return: Maximum daily credit allowance
         :rtype: int
         """
+        if sponsored_allowance_name is not None and sponsored_allowance_id is not None:
+            raise RuntimeError(
+                """Pass either `sponsored_allowance_name` or
+                `sponsored_allowance_id`, not both!"""
+            )
         with Session(self.db_engine) as session:
-            if sponsored_allowance_id is None:
+            if sponsored_allowance_name is None and sponsored_allowance_id is None:
                 base_allowance = int(
                     session.query(BaseSetting)
                     .filter(BaseSetting.setting_key == "base_credit_allowance")
@@ -227,33 +241,50 @@ class TokenTracker:
                     .scalar()
                 )
                 max_credits = base_allowance + group_allowances
-            else:
-                max_credits = session.query(
-                    SponsoredAllowance.daily_credit_limit
-                ).filter(SponsoredAllowance.id == sponsored_allowance_id)
+            elif sponsored_allowance_name is not None:
+                max_credits = (
+                    session.query(SponsoredAllowance.daily_credit_limit)
+                    .filter(SponsoredAllowance.name == sponsored_allowance_name)
+                    .scalar()
+                )
+            elif sponsored_allowance_id is not None:
+                max_credits = (
+                    session.query(SponsoredAllowance.daily_credit_limit)
+                    .filter(SponsoredAllowance.id == sponsored_allowance_id)
+                    .scalar()
+                )
 
         return max_credits
 
     def remaining_credits(
-        self, user: dict, sponsored_allowance_id: str = None
+        self, user: dict, sponsored_allowance_name: str = None
     ) -> tuple[int, int]:
         """Get remaining credits for the specified user and sponsored
         allowance.
 
         :param user_id: User
         :type user_id: dict
-        :param sponsored_allowance_id: ID of the sponsored allowance
-        :type sponsored_allowance_id: str, optional
+        :param sponsored_allowance_name: Name of the sponsored allowance
+        :type sponsored_allowance_name: str, optional
         :return: Remaining daily credits available to the user, and in the sponsored
         allowance (if specified)
         :rtype: tuple[int, int]
         """
-        logger.info("Checking remaining credits...")
+        logger.debug("Checking remaining credits...")
+
+        if sponsored_allowance_name is not None:
+            sponsored_allowance_id = UUID(
+                get_sponsored_allowance(
+                    database_url=self.db_url, name=sponsored_allowance_name
+                )["id"]
+            )
+        else:
+            sponsored_allowance_id = None
         user_credits_remaining = self._remaining_user_credits(
             user, sponsored_allowance_id
         )
         total_sponsored_credits_remaining = None
-        if sponsored_allowance_id:
+        if sponsored_allowance_name:
             total_sponsored_credits_remaining = self._remaining_sponsored_credits(
                 sponsored_allowance_id
             )
@@ -266,7 +297,7 @@ class TokenTracker:
         user: dict,
         prompt_tokens: int,
         response_tokens: int,
-        sponsored_allowance_id: str = None,
+        sponsored_allowance_name: str = None,
     ):
         """Log the used tokens in the database
 
@@ -280,8 +311,8 @@ class TokenTracker:
         :type prompt_tokens: int
         :param response_tokens: Number of tokens in the response (output tokens)
         :type response_tokens: int
-        :param sponsored_allowance_id: ID of the sponsored allowance to apply
-        :type sponsored_allowance_id: str, optional
+        :param sponsored_allowance_name: Name of the sponsored allowance to apply
+        :type sponsored_allowance_name: str, optional
         """
         logging.debug(
             f"Date: {datetime.now(UTC)}Z | Email: {user.get('email')} "
@@ -290,6 +321,15 @@ class TokenTracker:
         )
 
         with Session(self.db_engine) as session:
+            if sponsored_allowance_name is not None:
+                sponsored_allowance_id = UUID(
+                    get_sponsored_allowance(
+                        database_url=self.db_url, name=sponsored_allowance_name
+                    )["id"]
+                )
+            else:
+                sponsored_allowance_id = None
+
             session.add(
                 TokenUsageLog(
                     provider=provider,

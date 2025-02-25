@@ -37,3 +37,11 @@ class CreditGroup(Base):
     description = sa.Column(sa.String(length=255))
 
     users = relationship("CreditGroupUser", back_populates="credit_group")
+
+    __table_args__ = (
+        sa.Index(
+            "idx_token_tracking_credit_group_name_lower",
+            sa.func.lower(name),
+            unique=True,
+        ),
+    )
