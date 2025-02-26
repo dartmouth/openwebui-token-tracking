@@ -74,7 +74,7 @@ class BaseTrackedPipe(ABC):
         self.token_tracker = TokenTracker(os.environ[BaseTrackedPipe.DATABASE_URL_ENV])
 
     def _check_limits(
-        self, model_id: str, user: dict, sponsored_allowance_id: str = None
+        self, model_id: str, user: dict, sponsored_allowance_name: str = None
     ) -> bool:
         """
         Check if the user has exceeded their token usage limits.
@@ -83,8 +83,8 @@ class BaseTrackedPipe(ABC):
         :type model_id: str
         :param user: User information dictionary
         :type user: dict
-        :param sponsored_allowance_id: The ID of the sponsored allowance
-        :type model_id: str, optional
+        :param sponsored_allowance_name: The name of the sponsored allowance
+        :type sponsored_allowance_name: str, optional
         :raises TokenLimitExceededError: If user has exceeded their daily token limit
         :return: True if within limits
         :rtype: bool
@@ -93,7 +93,9 @@ class BaseTrackedPipe(ABC):
             return True
 
         daily_credits_remaining, total_sponsored_credits_remaining = (
-            self.token_tracker.remaining_credits(user, sponsored_allowance_id)
+            self.token_tracker.remaining_credits(
+                user, sponsored_allowance_name=sponsored_allowance_name
+            )
         )
 
         if (
@@ -101,16 +103,18 @@ class BaseTrackedPipe(ABC):
             and total_sponsored_credits_remaining <= 0
         ):
             TotalTokenLimitExceededError(
-                f"""The total credit limit for the sponsored allowance {sponsored_allowance_id}
+                f"""The total credit limit for the sponsored allowance {sponsored_allowance_name}
                 has been exceeded. Please contact the sponsor to add more credits, or choose
                 a different model.
                 """
             )
-        elif sponsored_allowance_id is not None and daily_credits_remaining <= 0:
-            max_credits = self.token_tracker.max_credits(user, sponsored_allowance_id)
+        elif sponsored_allowance_name is not None and daily_credits_remaining <= 0:
+            max_credits = self.token_tracker.max_credits(
+                user, sponsored_allowance_name=sponsored_allowance_name
+            )
             DailyTokenLimitExceededError(
                 f"""You've exceeded the daily usage limit ({max_credits} credits) for
-                the sponsored allowance {sponsored_allowance_id}. Your usage will reset in {_time_to_midnight()}.
+                the sponsored allowance {sponsored_allowance_name}. Your usage will reset in {_time_to_midnight()}.
                 Until then, please use a different model. """
             )
 
@@ -251,9 +255,9 @@ class BaseTrackedPipe(ABC):
         :raises RequestError: If the API request fails
         """
         model = __metadata__.get("model")
-        sponsored_allowance_id = None
+        sponsored_allowance_name = None
         if model:
-            sponsored_allowance_id, *_ = model.id.split("-")
+            sponsored_allowance_name, *_ = model.id.split("-")
 
         model_id = body.get("model").replace(
             self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
@@ -267,7 +271,7 @@ class BaseTrackedPipe(ABC):
             self._check_limits(
                 model_id=model_id,
                 user=__user__,
-                sponsored_allowance_id=sponsored_allowance_id,
+                sponsored_allowance_name=sponsored_allowance_name,
             )
         except TokenLimitExceededError as e:
             return str(e)
@@ -297,7 +301,9 @@ class BaseTrackedPipe(ABC):
             print(f"Error in pipe method: {e}")
             return f"Error: {e}"
 
-    def stream_response(self, headers, payload, model_id, user):
+    def stream_response(
+        self, headers, payload, model_id, user, sponsored_allowance_name: str = None
+    ):
         """
         Handle streaming responses from the API.
 
@@ -312,6 +318,8 @@ class BaseTrackedPipe(ABC):
         :type model_id: str
         :param user: User information for token tracking
         :type user: dict
+        :param sponsored_allowance_name: The name of the sponsored allowance
+        :type sponsored_allowance_name: str, optional
         :yield: Response chunks from the API
         :raises RequestError: If the API request fails
         """
@@ -329,13 +337,16 @@ class BaseTrackedPipe(ABC):
                 user=user,
                 prompt_tokens=tokens.prompt_tokens,
                 response_tokens=tokens.response_tokens,
+                sponsored_allowance_name=sponsored_allowance_name,
             )
 
         except Exception as e:
             print(f"Error in stream_response: {e}")
             yield f"Error: {e}"
 
-    def non_stream_response(self, headers, payload, model_id, user):
+    def non_stream_response(
+        self, headers, payload, model_id, user, sponsored_allowance_name: str = None
+    ):
         """
         Handle non-streaming responses from the API.
 
@@ -350,6 +361,8 @@ class BaseTrackedPipe(ABC):
         :type model_id: str
         :param user: User information for token tracking
         :type user: dict
+        :param sponsored_allowance_name: The name of the sponsored allowance
+        :type sponsored_allowance_name: str, optional
         :return: The API response
         :rtype: Any
         :raises RequestError: If the API request fails
@@ -363,6 +376,7 @@ class BaseTrackedPipe(ABC):
                 user=user,
                 prompt_tokens=tokens.prompt_tokens,
                 response_tokens=tokens.response_tokens,
+                sponsored_allowance_name=sponsored_allowance_name,
             )
 
             return response
