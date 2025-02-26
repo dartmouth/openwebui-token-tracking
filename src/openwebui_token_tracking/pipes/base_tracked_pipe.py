@@ -293,9 +293,21 @@ class BaseTrackedPipe(ABC):
 
         try:
             if body.get("stream", False):
-                return self.stream_response(headers, payload, model_id, __user__)
+                return self.stream_response(
+                    headers,
+                    payload,
+                    model_id,
+                    __user__,
+                    sponsored_allowance_name=sponsored_allowance_name,
+                )
             else:
-                return self.non_stream_response(headers, payload, model_id, __user__)
+                return self.non_stream_response(
+                    headers,
+                    payload,
+                    model_id,
+                    __user__,
+                    sponsored_allowance_name=sponsored_allowance_name,
+                )
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}")
             return f"Error: Request failed: {e}"

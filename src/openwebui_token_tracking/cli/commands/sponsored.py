@@ -60,6 +60,29 @@ def create_sponsored_allowance(
     )
 
 
+@sponsored.command(name="delete")
+@click.option("--database-url", envvar="DATABASE_URL")
+@click.option("--id", help="ID of the sponsored allowance to delete")
+@click.option("--name", help="Name of the sponsored allowance to delete")
+def delete_sponsored(database_url: str, id: str = None, name: str = None):
+    """Delete a sponsored allowance from the database.
+
+    Either --id or --name must be provided to identify the allowance to delete.
+    DATABASE-URL is expected to be in SQLAlchemy format.
+    """
+    if id is None and name is None:
+        click.echo("Error: Either --id or --name must be provided", err=True)
+        return
+
+    try:
+        sp.delete_sponsored_allowance(
+            database_url=database_url, allowance_id=id, name=name
+        )
+        click.echo(f"Successfully deleted sponsored allowance: {id or name}")
+    except ValueError as e:
+        click.echo(f"Error: {str(e)}", err=True)
+
+
 @sponsored.command(name="list")
 @click.option("--database-url", envvar="DATABASE_URL")
 def list_sponsored(database_url: str):
@@ -67,6 +90,6 @@ def list_sponsored(database_url: str):
 
     DATABASE-URL is expected to be in SQLAlchemy format.
     """
-    models = sp.list_sponsored(database_url=database_url)
+    models = sp.get_sponsored_allowances(database_url=database_url)
     for model in models:
         click.echo(model)
