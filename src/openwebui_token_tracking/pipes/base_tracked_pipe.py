@@ -102,7 +102,7 @@ class BaseTrackedPipe(ABC):
             total_sponsored_credits_remaining is not None
             and total_sponsored_credits_remaining <= 0
         ):
-            TotalTokenLimitExceededError(
+            raise TotalTokenLimitExceededError(
                 f"""The total credit limit for the sponsored allowance {sponsored_allowance_name}
                 has been exceeded. Please contact the sponsor to add more credits, or choose
                 a different model.
@@ -112,13 +112,13 @@ class BaseTrackedPipe(ABC):
             max_credits = self.token_tracker.max_credits(
                 user, sponsored_allowance_name=sponsored_allowance_name
             )
-            DailyTokenLimitExceededError(
+            raise DailyTokenLimitExceededError(
                 f"""You've exceeded the daily usage limit ({max_credits} credits) for
                 the sponsored allowance {sponsored_allowance_name}. Your usage will reset in {_time_to_midnight()}.
                 Until then, please use a different model. """
             )
 
-        else:
+        elif daily_credits_remaining <= 0:
             free_models = [
                 m
                 for m in self.token_tracker.get_models()
@@ -131,6 +131,8 @@ class BaseTrackedPipe(ABC):
                     IMPORTANT: Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.
                     """
             )
+
+        return True
 
     @abstractmethod
     def _headers(self) -> dict:
