@@ -79,6 +79,11 @@ def delete_sponsored_allowance(
                 f"No sponsored allowance found with the given {'ID' if allowance_id else 'name'}"
             )
 
+        session.query(SponsoredAllowanceBaseModels).filter(
+            SponsoredAllowanceBaseModels.sponsored_allowance_id
+            == sponsored_allowance.id
+        ).delete(synchronize_session=False)
+
         session.delete(sponsored_allowance)
         session.commit()
 
