@@ -93,3 +93,68 @@ def list_sponsored(database_url: str):
     models = sp.get_sponsored_allowances(database_url=database_url)
     for model in models:
         click.echo(model)
+
+
+@sponsored.command(name="update")
+@click.option("--database-url", envvar="DATABASE_URL")
+@click.option("--id", help="ID of the sponsored allowance to update")
+@click.option("--name", help="Current name of the sponsored allowance to update")
+@click.option("--new-name", help="New name for the sponsored allowance")
+@click.option("--sponsor-id", help="New sponsor ID for the allowance")
+@click.option(
+    "--model",
+    "-m",
+    type=str,
+    help="ID of a model for which the allowance should apply (replaces existing models)",
+    multiple=True,
+)
+@click.option(
+    "--total-limit",
+    "-t",
+    type=int,
+    help="New total credit limit across all users and models",
+)
+@click.option(
+    "--daily-limit",
+    "-d",
+    type=int,
+    help="New daily credit limit for each user",
+)
+def update_sponsored(
+    database_url: str,
+    id: str = None,
+    name: str = None,
+    new_name: str = None,
+    sponsor_id: str = None,
+    model: list[str] = None,
+    total_limit: int = None,
+    daily_limit: int = None,
+):
+    """Update a sponsored allowance in the database.
+
+    Either --id or --name must be provided to identify the allowance to update.
+    Only the specified fields will be updated.
+
+    DATABASE-URL is expected to be in SQLAlchemy format.
+    """
+    if id is None and name is None:
+        click.echo("Error: Either --id or --name must be provided", err=True)
+        return
+
+    # Only pass model parameter if it was explicitly provided
+    models_param = model if model else None
+
+    try:
+        sp.update_sponsored_allowance(
+            database_url=database_url,
+            allowance_id=id,
+            name=name,
+            new_name=new_name,
+            sponsor_id=sponsor_id,
+            models=models_param,
+            total_credit_limit=total_limit,
+            daily_credit_limit=daily_limit,
+        )
+        click.echo(f"Successfully updated sponsored allowance: {id or name}")
+    except ValueError as e:
+        click.echo(f"Error: {str(e)}", err=True)

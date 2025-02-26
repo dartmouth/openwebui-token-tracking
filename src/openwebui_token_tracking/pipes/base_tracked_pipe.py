@@ -103,19 +103,18 @@ class BaseTrackedPipe(ABC):
             and total_sponsored_credits_remaining <= 0
         ):
             raise TotalTokenLimitExceededError(
-                f"""The total credit limit for the sponsored allowance {sponsored_allowance_name}
-                has been exceeded. Please contact the sponsor to add more credits, or choose
-                a different model.
-                """
+                f"The total credit limit for the sponsored allowance '{sponsored_allowance_name}' "
+                "has been exceeded. Please contact the sponsor to add more credits, or choose "
+                "a different model."
             )
         elif sponsored_allowance_name is not None and daily_credits_remaining <= 0:
             max_credits = self.token_tracker.max_credits(
                 user, sponsored_allowance_name=sponsored_allowance_name
             )
             raise DailyTokenLimitExceededError(
-                f"""You've exceeded the daily usage limit ({max_credits} credits) for
-                the sponsored allowance {sponsored_allowance_name}. Your usage will reset in {_time_to_midnight()}.
-                Until then, please use a different model. """
+                f"You've exceeded the daily usage limit ({max_credits} credits) for "
+                f"the sponsored allowance '{sponsored_allowance_name}'. Your usage will reset in {_time_to_midnight()}. "
+                "Until then, please use a different model."
             )
 
         elif daily_credits_remaining <= 0:
@@ -126,10 +125,9 @@ class BaseTrackedPipe(ABC):
             ]
             max_credits = self.token_tracker.max_credits(user)
             raise DailyTokenLimitExceededError(
-                f"""You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models.
-                    Your usage will reset in {_time_to_midnight()}.
-                    IMPORTANT: Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.
-                    """
+                f"You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models. "
+                "Your usage will reset in {_time_to_midnight()}.\n"
+                f'**IMPORTANT:** Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.'
             )
 
         return True
