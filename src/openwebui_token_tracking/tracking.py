@@ -5,7 +5,7 @@ from openwebui_token_tracking.db.settings import BaseSetting
 from openwebui_token_tracking.db.model_pricing import ModelPricing
 from openwebui_token_tracking.models import ModelPricingSchema
 from openwebui_token_tracking.db.sponsored import SponsoredAllowance
-from openwebui_token_tracking.sponsored import get_sponsored_allowance
+from openwebui_token_tracking.sponsored import get_sponsored_allowances
 
 
 import sqlalchemy as db
@@ -274,7 +274,7 @@ class TokenTracker:
 
         if sponsored_allowance_name is not None:
             sponsored_allowance_id = UUID(
-                get_sponsored_allowance(
+                get_sponsored_allowances(
                     database_url=self.db_url, name=sponsored_allowance_name
                 )["id"]
             )
@@ -323,7 +323,7 @@ class TokenTracker:
         with Session(self.db_engine) as session:
             if sponsored_allowance_name is not None:
                 sponsored_allowance_id = UUID(
-                    get_sponsored_allowance(
+                    get_sponsored_allowances(
                         database_url=self.db_url, name=sponsored_allowance_name
                     )["id"]
                 )
