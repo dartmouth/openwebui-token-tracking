@@ -16,13 +16,37 @@ You have to use pipes for all models whose token usage you want to track, even t
 Fortunately, this library also offers the implementations of pipes for all major model providers!
 ```
 
-The basic workflow is:
+In order to avoid differentiating between input and output tokens (which are usually priced quite differently), we use an abstraction from tokens called _credits_. Credits are determined by calculating the actual cost of the tokens. We recommend using a conversion rate of 1000 credits per 1 USD, but you can set this to whatever you prefer.
 
-- User attempts to send message to LLM via pipe
-- Token tracker checks if user has exceeded their token allowance
-  - If maximum token allowance has been hit or exceeded, no message is sent
-  - If tokens are remaining, message is sent
-- After the LLM's response is received, the consumed prompt and response tokens are recorded and charged to the user's account
+The library supports two kinds of allowances:
+
+- Basic or group-based allowances:
+  - A user gets a daily allowance of credits for all available models
+  - The total allowance is the sum of a base allowance plus additional allowances through group memberships
+  - Example:
+    - Every user gets an allowance of 1000 credits per day.
+    - Every user who is a member of the group "power users" gets an additional 2000 credits per day.
+- Sponsored allowances:
+  - These are allowances that a sponsor grants for specific models. Sponsored allowances have a daily credit limit (similar, but separate from the group-based daily limit) and a total credit limit.
+  - A sponsored allowance relies on the setup of "thin" Workspace Models, one for each base model that the sponsored allowance should be valid for
+  - Example:
+    - The "AI Department" wants to grant its members additional credits for GPT-4o and Claude Sonnet.
+    - To control cost, the total grant should not exceed 100000 credits.
+    - To ensure equitable access for all team members, the daily limit within the sponsored allowance is set to 20 credits.
+    - Once the sponsored allowance and the corresponding Workspace Models are set up, members of the AI Department see additional options in their model dropdown list: "AI Department - GPT 4o" and "AI Department - Claude Sonnet"
+    - They can now use their separate allowance for these two models, in addition to the basic allowance for all other models (see above)
+
+```{warning}
+Since Workspace Models cannot be used as a base model for other Workspace Models, sponsored allowances cannot be used to build other Workspace Models!
+```
+
+The basic workflow for a general token allowance is:
+
+- User attempts to send message to LLM via pipe.
+- Token tracker checks if user has exceeded their token allowance.
+  - If maximum token allowance has been hit or exceeded, no message is sent.
+  - If tokens are remaining, message is sent.
+- After the LLM's response is received, the consumed prompt and response tokens are recorded and charged to the user's account, and the sponsored allowance, if applicable.
 
 
 ```{hint}
@@ -37,7 +61,8 @@ Some of the features offered by this library:
 - 🗂️ Database migration to automatically initialize all required tables in Open WebUI's database on a separate migration branch
 - 💰 Limiting users' token usage by assigning them a basic token credit allowance
 - 🏦 Token credit groups to easily assign additional allowances to multiple users
-- 🚀 A robust command-line interface to manage credit groups
+- 🎁 Sponsored allowances that only apply to certain models
+- 🚀 A robust command-line interface to manage credit groups and sponsored allowances
 
 
 ## Installation
@@ -50,8 +75,8 @@ pip install openwebui-token-tracking
 
 ## Usage
 
-To get tracking, you need to first initialize the system in your Open WebUI database. Then you need to set up the pipes for the models you wish to track.
-You can optionally create credit groups and assign users to them.
+To start tracking, you need to first initialize the system in your Open WebUI database. Then, you need to set up the pipes for the models you wish to track.
+You can optionally create credit groups and assign users to them. Sponsored allowances require additional setup.
 
 A command-line interface  is provided for convenient setup and management of the token tracking system. The pipes are set up through Open WebUI's interface (see below).
 
@@ -95,11 +120,61 @@ You can provide your own pricing information in this step by passing the option 
 ```
 
 
+### Setting up a tracked pipe
+
+Models need to be connected through pipes to inject the necessary tracking code. A base class for a tracked pipe is provided in `openwebui_token_tracking.pipes.BaseTrackedPipe`. We currently offer implementations for Anthropic, Google, Mistral, and OpenAI.
+
+```{warning}
+APIs that are fully OpenAI-compatible, i.e., they not only provide the same endpoints, but they also use the same input and output scheme, can use the OpenAI implementation of the tracked pipe. An example is [Text Generation Inference Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api).
+```
+
+To set up the tracked pipe, add a Function to Open WebUI. **Important:** The function name needs to match the provider name (e.g., `Anthropic`). You can then define the tracked pipe like so:
+
+```python
+"""
+title: Anthropic Pipe
+author: Simon Stone
+requirements: openwebui-token-tracking
+version: 0.1.0
+"""
+
+from openwebui_token_tracking.pipes.anthropic import AnthropicTrackedPipe
+
+Pipe = AnthropicTrackedPipe
+
+```
+
+Each pipe offers Valves to enter an API key or an API base url. Make sure to fill in the required values before activating the pipe.
+
+### Base allowance
+
+You can find the base allowance in Open WebUI's database in the table `token_tracking_base_settings`. By default, it is initialized with 1000 credits.
+
+### Credit groups
+
+You can manage credit groups through `openwebui-token-tracking`'s command-line interface. For example, to create a credit group:
+
+```
+owui-token-tracking credit-group create "my credit group" 2000 "my credit group granting an additional 2000 credits"
+```
+
+You can then add users to the credit group:
+
+```
+owui-token-tracking credit-group add-user my_user_id 'my credit group'
+```
+
+```{hint}
+To find a user's ID in the Open WebUI database, you can also use the CLI:
+
+    owui-token-tracking user find --name my_user_name
+
+```
 
 
-### Manage credit groups
-
+### Sponsored allowances
 ...
+
 
 ## Documentation
 
