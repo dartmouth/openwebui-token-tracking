@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from openwebui_token_tracking.db import init_db
 from openwebui_token_tracking.db.credit_group import CreditGroup, CreditGroupUser
 from openwebui_token_tracking.db.user import User
+from openwebui_token_tracking.user import serialize_user
 
 import os
 
@@ -381,11 +382,7 @@ def list_users(credit_group_name: str, database_url: str = None) -> list[dict]:
         user_list = []
         for user in users:
             user_list.append(
-                {
-                    "id": str(user.id),  # Convert UUID to string
-                    "name": user.name,
-                    "email": user.email,
-                }
+                serialize_user(user),
             )
 
         return user_list
