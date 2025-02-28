@@ -18,7 +18,7 @@ jobs:
           pip install -e ".[docs]" --break-system-packages
       - name: Sphinx build
         run: |
-          sphinx-build -b html docs/source/ docs/build/html
+          sphinx-build -b docs/source/ docs/build/html
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
