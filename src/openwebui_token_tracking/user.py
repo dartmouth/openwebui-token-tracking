@@ -55,3 +55,24 @@ def find_user(
         query = session.query(User).filter(sa.and_(*conditions))
 
     return query.first()
+
+
+def serialize_user(user):
+    credit_groups_data = []
+    for credit_group_user in user.credit_groups:
+        credit_group = credit_group_user.credit_group
+        credit_groups_data.append(
+            {
+                "id": str(credit_group.id),
+                "name": credit_group.name,
+                "max_credit": credit_group.max_credit,
+                "description": credit_group.description,
+            }
+        )
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "credit_groups": credit_groups_data,
+    }

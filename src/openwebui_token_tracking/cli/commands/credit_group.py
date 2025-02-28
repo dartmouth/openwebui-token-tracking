@@ -1,6 +1,7 @@
 import click
 import openwebui_token_tracking.credit_groups
 
+import json
 
 @click.group(name="credit-group")
 def credit_group():
@@ -146,4 +147,23 @@ def remove_user(user_id: str, credit_group: str, database_url: str):
         return result
     except Exception as e:
         click.echo(f"Error removing user from credit group: {str(e)}", err=True)
+        raise click.Abort()
+
+
+@credit_group.command()
+@click.argument("name")
+@click.argument("database-url", envvar="DATABASE_URL")
+def list_users(name: str, database_url: str):
+    """List all users in credit group NAME from the database at DATABASE_URL."""
+    try:
+        result = openwebui_token_tracking.credit_groups.list_users(
+            credit_group_name=name, database_url=database_url
+        )
+        click.echo(json.dumps(result))
+        return result
+    except KeyError as e:
+        click.echo(f"Error: {str(e)}", err=True)
+        raise click.Abort()
+    except Exception as e:
+        click.echo(f"Error listing users in credit group: {str(e)}", err=True)
         raise click.Abort()
