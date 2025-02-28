@@ -1,6 +1,6 @@
 [project]
 name = "openwebui-token-tracking"
-version = "0.1.0-alpha1"
+version = "0.1.0-alpha2"
 description = "Add your description here"
 readme = "README.md"
 authors = [

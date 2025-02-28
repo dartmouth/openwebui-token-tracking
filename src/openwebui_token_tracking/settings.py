@@ -7,7 +7,7 @@ def init_base_settings(database_url: str, settings: list[dict[str, str]] = None)
     """Initializes the base settings table with default values
 
     :param database_url: A database URL in `SQLAlchemy format
-    <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
+        <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
     :type database_url: str
     :param settings: A list of dictionaries of settings to use. If None, uses default settings.
     :type settings: list[dict[str, str]]

@@ -38,6 +38,22 @@ class TotalTokenLimitExceededError(TokenLimitExceededError):
 
 
 class TokenTracker:
+    """A class for tracking token usage and managing credit limits for users.
+
+    The TokenTracker connects to the Open WebUI database to track token
+    consumption by users, calculate remaining credits, and enforce token usage
+    limits across different models and providers.
+
+    :param db_url: Database connection URL
+    :type db_url: str
+
+    :ivar db_engine: SQLAlchemy database engine
+    :ivar db_url: Database connection URL
+
+    :raises TokenLimitExceededError: When a token limit is exceeded
+    :raises DailyTokenLimitExceededError: When a daily token limit is exceeded
+    :raises TotalTokenLimitExceededError: When a total token limit is exceeded
+    """
     def __init__(self, db_url: str):
         self.db_engine = init_db(db_url)
         self.db_url = db_url
@@ -266,8 +282,7 @@ class TokenTracker:
         :type user_id: dict
         :param sponsored_allowance_name: Name of the sponsored allowance
         :type sponsored_allowance_name: str, optional
-        :return: Remaining daily credits available to the user, and in the sponsored
-        allowance (if specified)
+        :return: Remaining daily credits available to the user, and in the sponsored allowance (if specified)
         :rtype: tuple[int, int]
         """
         logger.debug("Checking remaining credits...")

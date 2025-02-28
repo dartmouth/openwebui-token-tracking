@@ -53,16 +53,16 @@ def create_credit_group(
 
 
 def get_credit_group(credit_group_name: str, database_url: str = None) -> dict:
-    """Retrieves a credit group from the database by its name and returns it as a
-    dictionary.
+    """Retrieves a credit group from the database by its name and returns it
+    as a dictionary.
 
     :param credit_group_name: Name of the credit group to retrieve
     :type credit_group_name: str
     :param database_url: URL of the database. If None, uses env variable
-    ``DATABASE_URL``
+        ``DATABASE_URL``
     :type database_url: str, optional
     :return: Dictionary containing the credit group properties (id, name, max_credit,
-    description)
+        description)
     :rtype: dict
     :raises KeyError: Raised if the credit group of that name could not be found
     """
@@ -229,10 +229,10 @@ def delete_credit_group(
     :param credit_group_name: Name of the credit group to delete
     :type credit_group_name: str
     :param database_url: URL of the database. If None, uses env variable
-    ``DATABASE_URL``
+        ``DATABASE_URL``
     :type database_url: str, optional
     :param force: If True, deletes group even if it has users. If False, raises error
-    if group has users
+        if group has users
     :type force: bool, optional
     :raises KeyError: Raised if the credit group of that name could not be found
     :raises ValueError: Raised if the group has users and force=False
@@ -280,7 +280,8 @@ def add_user(user_id: str, credit_group_name: str, database_url: str = None):
     :type credit_group_name: str
     :param user_id: ID of the user
     :type user_id: str
-    :param database_url: URL of the database. If None, uses env variable ``DATABASE_URL``
+    :param database_url: URL of the database. If None, uses env variable
+        ``DATABASE_URL``
     :type database_url: str, optional
     :raises KeyError: Raised if the credit group of that name could not be found
     """
@@ -309,7 +310,7 @@ def remove_user(user_id: str, credit_group_name: str, database_url: str = None):
     :param credit_group_name: Name of the credit group to remove the user from
     :type credit_group_name: str
     :param database_url: URL of the database. If None, uses env variable
-    ``DATABASE_URL``
+        ``DATABASE_URL``
     :type database_url: str, optional
     :raises KeyError: Raised if the credit group of that name could not be found
     :raises ValueError: Raised if the user is not in the specified credit group

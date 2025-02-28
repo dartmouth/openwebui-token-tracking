@@ -76,8 +76,7 @@ def list_model_pricing(database_url: str, provider: str = None) -> list[dict]:
 def add_model_pricing(database_url: str, model_pricing: list[ModelPricingSchema]):
     """Add model pricing to the database
 
-    :param database_url: A database URL in `SQLAlchemy format
-    <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
+    :param database_url: A database URL in `SQLAlchemy format <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
     :type database_url: str
     :param models: A list of model pricing descriptions.
     :type models: list[ModelPricing], optional
@@ -95,8 +94,7 @@ def update_model_pricing(
 ) -> bool:
     """Update pricing information for a specific model
 
-    :param database_url: A database URL in `SQLAlchemy format
-        <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
+    :param database_url: A database URL in `SQLAlchemy format <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_
     :type database_url: str
     :param model_id: Model ID to update
     :type model_id: str

@@ -92,7 +92,7 @@ This will:
 
 1. Migrate the Open WebUI database to include the token tracking tables
 2. Add pricing information for all major model providers currently supported by this library (as of the time of release)
-3. Initialize a baseline token credit allowance for all users of 1000 credits (corresponds to 1 USD)
+3. Initialize a baseline daily token credit allowance for all users of 1000 credits (corresponds to 1 USD)
 
 You can provide your own pricing information in this step by passing the option `--json` and the name of a JSON file with the following structure:
 
@@ -124,11 +124,11 @@ You can provide your own pricing information in this step by passing the option 
 
 Models need to be connected through pipes to inject the necessary tracking code. A base class for a tracked pipe is provided in `openwebui_token_tracking.pipes.BaseTrackedPipe`. We currently offer implementations for Anthropic, Google, Mistral, and OpenAI.
 
-```{warning}
+```{hint}
 APIs that are fully OpenAI-compatible, i.e., they not only provide the same endpoints, but they also use the same input and output scheme, can use the OpenAI implementation of the tracked pipe. An example is [Text Generation Inference Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api).
 ```
 
-To set up the tracked pipe, add a Function to Open WebUI. **Important:** The function name needs to match the provider name (e.g., `Anthropic`). You can then define the tracked pipe like so:
+To set up the tracked pipe, add a Function to Open WebUI. **Important:** The function name needs to match the value of `provider` in the pricing table (case-insensitive, e.g., `Anthropic`). You can then define the tracked pipe like so:
 
 ```python
 """
@@ -173,7 +173,7 @@ To find a user's ID in the Open WebUI database, you can also use the CLI:
 
 
 ### Sponsored allowances
-...
+... coming soon
 
 
 ## Documentation

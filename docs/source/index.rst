@@ -1,5 +1,4 @@
-Welcome to Open WebUI Token Tracking's documentation!
-=================================================
+.. include:: readme.rst
 
 .. toctree::
    :maxdepth: 2
