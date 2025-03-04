@@ -1,6 +1,6 @@
 [project]
 name = "openwebui-token-tracking"
-version = "0.1.0-alpha4"
+version = "0.1.0"
 description = "A library to facilitate token tracking and limiting in Open WebUI."
 readme = "README.md"
 authors = [
