@@ -126,7 +126,7 @@ class BaseTrackedPipe(ABC):
             max_credits = self.token_tracker.max_credits(user)
             raise DailyTokenLimitExceededError(
                 f"You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models. "
-                "Your usage will reset in {_time_to_midnight()}.\n"
+                f"Your usage will reset in {_time_to_midnight()}.\n"
                 f'**IMPORTANT:** Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.'
             )
 
@@ -257,7 +257,7 @@ class BaseTrackedPipe(ABC):
         model = __metadata__.get("model")
         sponsored_allowance_name = None
         if model:
-            sponsored_allowance_name, *_ = model.id.split("-")
+            sponsored_allowance_name, *_ = model.id.split("---")
 
         model_id = body.get("model").replace(
             self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
