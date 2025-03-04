@@ -1,7 +1,7 @@
 [project]
 name = "openwebui-token-tracking"
-version = "0.1.0-alpha2"
-description = "Add your description here"
+version = "0.1.0-alpha4"
+description = "A library to facilitate token tracking and limiting in Open WebUI."
 readme = "README.md"
 authors = [
     { name = "Simon Stone", email = "simon.stone@dartmouth.edu" }

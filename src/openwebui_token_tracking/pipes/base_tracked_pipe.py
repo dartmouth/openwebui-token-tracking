@@ -14,6 +14,7 @@ Classes:
 from abc import ABC, abstractmethod
 import datetime
 import os
+import re
 from typing import Any, List, Union, Generator, Iterator, Tuple
 
 import requests
@@ -46,6 +47,20 @@ class TokenCount:
     def __init__(self):
         self.prompt_tokens = 0
         self.response_tokens = 0
+
+
+def _make_mermaid_error_message(type: str, message: str) -> str:
+    """A helper function creating a boxed error message with Mermaid syntax"""
+    header = " ".join(re.findall("[A-Z][^A-Z]*", type))
+    header = header.replace('"', "'")
+
+    return f"""```mermaid
+flowchart TD
+header["⚠️ {header.upper()} ⚠️"]
+style header fill:#fff0f0,stroke:#ff0000,stroke-width:4px,color:black,font-weight:bold,text-align:center
+```
+{message}
+"""
 
 
 class BaseTrackedPipe(ABC):
@@ -113,8 +128,8 @@ class BaseTrackedPipe(ABC):
             )
             raise DailyTokenLimitExceededError(
                 f"You've exceeded the daily usage limit ({max_credits} credits) for "
-                f"the sponsored allowance '{sponsored_allowance_name}'. Your usage will reset in {_time_to_midnight()}. "
-                "Until then, please use a different model."
+                f"the sponsored allowance '{sponsored_allowance_name}'.\nYour usage will reset in {_time_to_midnight()}.\n"
+                "Until then, please use a different model not covered by this sponsored allowance."
             )
 
         elif daily_credits_remaining <= 0:
@@ -124,9 +139,10 @@ class BaseTrackedPipe(ABC):
                 if not self.token_tracker.is_paid(m.id)
             ]
             max_credits = self.token_tracker.max_credits(user)
+
             raise DailyTokenLimitExceededError(
                 f"You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models. "
-                f"Your usage will reset in {_time_to_midnight()}.\n"
+                f"Your usage will reset in {_time_to_midnight()}.\nIf you would like to purchase more credits, please reach out to rc@dartmouth.edu.\n"
                 f'**IMPORTANT:** Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.'
             )
 
@@ -274,7 +290,7 @@ class BaseTrackedPipe(ABC):
                 sponsored_allowance_name=sponsored_allowance_name,
             )
         except TokenLimitExceededError as e:
-            return str(e)
+            return _make_mermaid_error_message(type=type(e).__name__, message=str(e))
 
         if self.valves.DEBUG:
             print("Incoming body:", str(body))
