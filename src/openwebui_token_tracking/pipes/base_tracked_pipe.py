@@ -57,7 +57,7 @@ def _make_mermaid_error_message(type: str, message: str) -> str:
     return f"""```mermaid
 flowchart TD
 header["⚠️ {header.upper()} ⚠️"]
-style header fill:#fff0f0,stroke:#ff0000,stroke-width:4px,color:black,font-weight:bold,text-align:center
+style header fill:#fff0f0,stroke:#f5dc69,stroke-width:4px,color:black,font-weight:bold,text-align:center
 ```
 {message}
 """
@@ -142,8 +142,8 @@ class BaseTrackedPipe(ABC):
 
             raise DailyTokenLimitExceededError(
                 f"You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models. "
-                f"Your usage will reset in {_time_to_midnight()}.\nIf you would like to purchase more credits, please reach out to rc@dartmouth.edu.\n"
-                f'**IMPORTANT:** Click the "New Chat" button and select one of the free models (ex. {free_models[0].name}) to start a new chat session.'
+                f"Your usage will reset in {_time_to_midnight()}.\nIf you would like to obtain more credits, please reach out to rc@dartmouth.edu.\n"
+                f"**IMPORTANT:** You can still use one of the free models (e.g., {free_models[0].name})."
             )
 
         return True
