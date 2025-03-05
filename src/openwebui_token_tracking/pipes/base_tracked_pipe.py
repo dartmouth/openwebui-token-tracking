@@ -272,12 +272,16 @@ class BaseTrackedPipe(ABC):
         """
         model = __metadata__.get("model")
         sponsored_allowance_name = None
-        if model:
-            sponsored_allowance_name, *_ = model.id.split("---")
-
-        model_id = body.get("model").replace(
-            self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
-        )
+        model_info = model.get("info", None)
+        if model_info:
+            sponsored_allowance_name, *_ = model_info["id"].split("---")
+            model_id = model_info["base_model_id"].replace(
+                self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
+            )
+        else:
+            model_id = model["id"].replace(
+                self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
+            )
 
         try:
             # This used to raise an exception that is displayed in the UI as an error
