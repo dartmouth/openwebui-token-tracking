@@ -270,9 +270,15 @@ class BaseTrackedPipe(ABC):
         :raises TokenLimitExceededError: If user has exceeded their token limit
         :raises RequestError: If the API request fails
         """
-        model = __metadata__.get("model")
+        model = __metadata__["model"]
         sponsored_allowance_name = None
+        # <v0.5.19 and v0.5.19+ keep the model info in different places:
+        # For <v0.5.19, there is a key 'info' that holds the base model id.
+        # For v0.5.19+, there the base model id is a key in model
         model_info = model.get("info", None)
+        if model_info is None and "base_model_id" in model:
+            model_info = model
+
         if model_info:
             # Check if Workspace Model name follows sponsored allowance
             # naming scheme and extract sponsored allowance name
