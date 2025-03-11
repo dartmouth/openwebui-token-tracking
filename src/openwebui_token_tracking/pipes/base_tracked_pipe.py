@@ -274,7 +274,10 @@ class BaseTrackedPipe(ABC):
         sponsored_allowance_name = None
         model_info = model.get("info", None)
         if model_info:
-            sponsored_allowance_name, *_ = model_info["id"].split("---")
+            # Check if Workspace Model name follows sponsored allowance
+            # naming scheme and extract sponsored allowance name
+            if "---" in model_info["id"]:
+                sponsored_allowance_name, *_ = model_info["id"].split("---")
             model_id = model_info["base_model_id"].replace(
                 self.provider + BaseTrackedPipe.MODEL_ID_PREFIX, "", 1
             )
