@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>openwebui_token_tracking.pipes.anthropic &mdash; Open WebUI Token Tracking v0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=9b771779" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fa47ad08"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Open WebUI Token Tracking
+              <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Open WebUI Token Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Open WebUI Token Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">openwebui_token_tracking.pipes.anthropic</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for openwebui_token_tracking.pipes.anthropic</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">open_webui.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">pop_system_message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_tracked_pipe</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseTrackedPipe</span><span class="p">,</span> <span class="n">RequestError</span><span class="p">,</span> <span class="n">TokenCount</span>
+
+
+<div class="viewcode-block" id="AnthropicTrackedPipe">
+<a class="viewcode-back" href="../../../api/pipes.html#openwebui_token_tracking.pipes.AnthropicTrackedPipe">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AnthropicTrackedPipe</span><span class="p">(</span><span class="n">BaseTrackedPipe</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Anthropic-specific implementation of the BaseTrackedPipe for handling API requests</span>
+<span class="sd">    to Anthropic&#39;s chat completion endpoints with token tracking.</span>
+
+<span class="sd">    This class handles authentication, request formatting, and response processing</span>
+<span class="sd">    specific to the Anthropic API, including support for image processing and</span>
+<span class="sd">    multi-modal messages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AnthropicTrackedPipe.Valves">
+<a class="viewcode-back" href="../../../api/pipes.html#openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Valves</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configuration parameters for Anthropic API connections.&quot;&quot;&quot;</span>
+        <span class="n">ANTHROPIC_API_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+            <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;API key for authenticating requests to the Anthropic API.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">DEBUG</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Anthropic pipe with API endpoint and configuration.</span>
+<span class="sd">        Sets up image size limits and loads API key from environment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;anthropic&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://api.anthropic.com/v1/messages&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valves</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Valves</span><span class="p">(</span>
+            <span class="o">**</span><span class="p">{</span><span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ANTHROPIC_API_KEY&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MAX_IMAGE_SIZE</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># 5MB per image</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build headers for Anthropic API requests.</span>
+
+<span class="sd">        :return: Dictionary containing authorization and content-type headers</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;x-api-key&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">valves</span><span class="o">.</span><span class="n">ANTHROPIC_API_KEY</span><span class="p">,</span>
+            <span class="s2">&quot;anthropic-version&quot;</span><span class="p">:</span> <span class="s2">&quot;2023-06-01&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format the request payload for Anthropic API.</span>
+
+<span class="sd">        :param model_id: The ID of the model to use</span>
+<span class="sd">        :type model_id: str</span>
+<span class="sd">        :param body: The request body containing messages and parameters</span>
+<span class="sd">        :type body: dict</span>
+<span class="sd">        :return: Formatted payload for the API request</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">system_message</span><span class="p">,</span> <span class="n">messages</span> <span class="o">=</span> <span class="n">pop_system_message</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">])</span>
+        <span class="n">processed_messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_messages</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">,</span>
+            <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="n">processed_messages</span><span class="p">,</span>
+            <span class="s2">&quot;max_tokens&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_tokens&quot;</span><span class="p">,</span> <span class="mi">4096</span><span class="p">),</span>
+            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span>
+            <span class="s2">&quot;top_k&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;top_k&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span>
+            <span class="s2">&quot;top_p&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;top_p&quot;</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span>
+            <span class="s2">&quot;stop_sequences&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stop&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="o">**</span><span class="p">({</span><span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">system_message</span><span class="p">)}</span> <span class="k">if</span> <span class="n">system_message</span> <span class="k">else</span> <span class="p">{}),</span>
+            <span class="s2">&quot;stream&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stream&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_stream_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a streaming request to the Anthropic API.</span>
+
+<span class="sd">        :param headers: HTTP headers for the request</span>
+<span class="sd">        :type headers: dict</span>
+<span class="sd">        :param payload: Request payload</span>
+<span class="sd">        :type payload: dict</span>
+<span class="sd">        :return: Tuple of (TokenCount, response generator)</span>
+<span class="sd">        :rtype: Tuple[TokenCount, Generator[Any, None, None]]</span>
+<span class="sd">        :raises RequestError: If the API request fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">TokenCount</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">generate_stream</span><span class="p">():</span>
+            <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="mf">3.05</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">RequestError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;HTTP Error </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_lines</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;data: &quot;</span><span class="p">):</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
+                                <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;content_block_start&quot;</span><span class="p">:</span>
+                                    <span class="k">yield</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;content_block&quot;</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+                                <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;content_block_delta&quot;</span><span class="p">:</span>
+                                    <span class="k">yield</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+                                <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;message_stop&quot;</span><span class="p">:</span>
+                                    <span class="k">break</span>
+                                <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;message_start&quot;</span><span class="p">:</span>
+                                    <span class="n">tokens</span><span class="o">.</span><span class="n">prompt_tokens</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span>
+                                        <span class="s2">&quot;input_tokens&quot;</span>
+                                    <span class="p">]</span>
+                                <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;message_delta&quot;</span><span class="p">:</span>
+                                    <span class="n">tokens</span><span class="o">.</span><span class="n">response_tokens</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span>
+                                        <span class="s2">&quot;output_tokens&quot;</span>
+                                    <span class="p">]</span>
+                                <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span>
+                                    <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                                        <span class="k">if</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span>
+                                            <span class="k">yield</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+                            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to parse JSON: </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected data structure: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Full data: </span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">generate_stream</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_non_stream_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a non-streaming request to the Anthropic API.</span>
+
+<span class="sd">        :param headers: HTTP headers for the request</span>
+<span class="sd">        :type headers: dict</span>
+<span class="sd">        :param payload: Request payload</span>
+<span class="sd">        :type payload: dict</span>
+<span class="sd">        :return: Tuple of (TokenCount, response data)</span>
+<span class="sd">        :rtype: Tuple[TokenCount, Any]</span>
+<span class="sd">        :raises RequestError: If the API request fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="mf">3.05</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RequestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP Error </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">TokenCount</span><span class="p">()</span>
+        <span class="n">tokens</span><span class="o">.</span><span class="n">prompt_tokens</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;input_tokens&quot;</span><span class="p">]</span>
+        <span class="n">tokens</span><span class="o">.</span><span class="n">response_tokens</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;output_tokens&quot;</span><span class="p">]</span>
+        <span class="n">response_text</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;content&quot;</span> <span class="ow">in</span> <span class="n">res</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">response_text</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">processed_messages</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">image_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_image_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
+            <span class="n">processed_content</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span>
+                        <span class="n">processed_content</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]})</span>
+                    <span class="k">elif</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;image_url&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">image_count</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="s2">&quot;Maximum of 100 images per API call exceeded&quot;</span>
+                            <span class="p">)</span>
+                        <span class="n">processed_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_image</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                        <span class="n">processed_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">processed_image</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">processed_image</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;base64&quot;</span><span class="p">:</span>
+                            <span class="n">image_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">processed_image</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">/</span> <span class="mi">4</span>
+                            <span class="n">total_image_size</span> <span class="o">+=</span> <span class="n">image_size</span>
+                            <span class="k">if</span> <span class="n">total_image_size</span> <span class="o">&gt;</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                    <span class="s2">&quot;Total size of images exceeds 100 MB limit&quot;</span>
+                                <span class="p">)</span>
+                        <span class="n">image_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">processed_content</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">message</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)}</span>
+                <span class="p">]</span>
+
+            <span class="n">processed_messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;role&quot;</span><span class="p">],</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">processed_content</span><span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">processed_messages</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process image data with size validation.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">image_data</span><span class="p">[</span><span class="s2">&quot;image_url&quot;</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;data:image&quot;</span><span class="p">):</span>
+            <span class="n">mime_type</span><span class="p">,</span> <span class="n">base64_data</span> <span class="o">=</span> <span class="n">image_data</span><span class="p">[</span><span class="s2">&quot;image_url&quot;</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">media_type</span> <span class="o">=</span> <span class="n">mime_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">image_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">base64_data</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">/</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="n">image_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_IMAGE_SIZE</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Image size exceeds 5MB limit: </span><span class="si">{</span><span class="n">image_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">MB&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;base64&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;media_type&quot;</span><span class="p">:</span> <span class="n">media_type</span><span class="p">,</span>
+                    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">base64_data</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">image_data</span><span class="p">[</span><span class="s2">&quot;image_url&quot;</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">content_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content-length&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">content_length</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_IMAGE_SIZE</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Image at URL exceeds 5MB limit: </span><span class="si">{</span><span class="n">content_length</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">MB&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">},</span>
+            <span class="p">}</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Simon Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,505 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>openwebui_token_tracking.tracking &mdash; Open WebUI Token Tracking v0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=9b771779" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fa47ad08"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Open WebUI Token Tracking
+              <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Open WebUI Token Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Open WebUI Token Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">openwebui_token_tracking.tracking</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for openwebui_token_tracking.tracking</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_db</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.db.token_usage</span><span class="w"> </span><span class="kn">import</span> <span class="n">TokenUsageLog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.db.credit_group</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreditGroup</span><span class="p">,</span> <span class="n">CreditGroupUser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.db.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSetting</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.db.model_pricing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelPricing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelPricingSchema</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.db.sponsored</span><span class="w"> </span><span class="kn">import</span> <span class="n">SponsoredAllowance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.sponsored</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sponsored_allowance</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">db</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">UTC</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">UUID</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TokenLimitExceededError">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenLimitExceededError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TokenLimitExceededError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a token limit was exceeded&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="DailyTokenLimitExceededError">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.DailyTokenLimitExceededError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyTokenLimitExceededError</span><span class="p">(</span><span class="n">TokenLimitExceededError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a daily token limit was exceeded&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="TotalTokenLimitExceededError">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TotalTokenLimitExceededError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TotalTokenLimitExceededError</span><span class="p">(</span><span class="n">TokenLimitExceededError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a total token limit was exceeded&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="TokenTracker">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenTracker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TokenTracker</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A class for tracking token usage and managing credit limits for users.</span>
+
+<span class="sd">    The TokenTracker connects to the Open WebUI database to track token</span>
+<span class="sd">    consumption by users, calculate remaining credits, and enforce token usage</span>
+<span class="sd">    limits across different models and providers.</span>
+
+<span class="sd">    :param db_url: Database connection URL</span>
+<span class="sd">    :type db_url: str</span>
+
+<span class="sd">    :ivar db_engine: SQLAlchemy database engine</span>
+<span class="sd">    :ivar db_url: Database connection URL</span>
+
+<span class="sd">    :raises TokenLimitExceededError: When a token limit is exceeded</span>
+<span class="sd">    :raises DailyTokenLimitExceededError: When a daily token limit is exceeded</span>
+<span class="sd">    :raises TotalTokenLimitExceededError: When a total token limit is exceeded</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span> <span class="o">=</span> <span class="n">init_db</span><span class="p">(</span><span class="n">db_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_url</span> <span class="o">=</span> <span class="n">db_url</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_credits_from_tokens</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">records</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ModelPricingSchema</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the number of consumed credits from a series of token logs</span>
+
+<span class="sd">        :param records: A token log record consisting of the model ID, the number of</span>
+<span class="sd">        consumed input tokens, and the number of consumed output tokens</span>
+<span class="sd">        :type records: Iterable[tuple[str, int, int]]</span>
+<span class="sd">        :param models: A list of the pricing schemas of all models appearing in the records</span>
+<span class="sd">        :type models: list[ModelPricingSchema]</span>
+<span class="sd">        :return: Total number of credits used</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">used_credits</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">cur_model</span><span class="p">,</span> <span class="n">cur_prompt_tokens</span><span class="p">,</span> <span class="n">cur_response_tokens</span><span class="p">)</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="n">model_data</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">models</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">cur_model</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="n">model_cost</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">model_data</span><span class="o">.</span><span class="n">input_cost_credits</span> <span class="o">/</span> <span class="n">model_data</span><span class="o">.</span><span class="n">per_input_tokens</span>
+            <span class="p">)</span> <span class="o">*</span> <span class="n">cur_prompt_tokens</span> <span class="o">+</span> <span class="p">(</span>
+                <span class="n">model_data</span><span class="o">.</span><span class="n">output_cost_credits</span> <span class="o">/</span> <span class="n">model_data</span><span class="o">.</span><span class="n">per_output_tokens</span>
+            <span class="p">)</span> <span class="o">*</span> <span class="n">cur_response_tokens</span>
+
+            <span class="n">used_credits</span> <span class="o">+=</span> <span class="n">model_cost</span>
+        <span class="k">return</span> <span class="n">used_credits</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_remaining_user_credits</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">sponsored_allowance_id</span><span class="p">:</span> <span class="n">UUID</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return user&#39;s remaining daily credits.</span>
+
+<span class="sd">        If the name of a sponsored allowance is provided, the daily credit limit is</span>
+<span class="sd">        calculated considering only the daily limit from that allowance.</span>
+<span class="sd">        Otherwise, the remaining credits are calculated using the user&#39;s group allowances.</span>
+
+<span class="sd">        :param user_id: User</span>
+<span class="sd">        :type user_id: dict</span>
+<span class="sd">        :param sponsored_allowance_id: ID of a sponsored allowance to consider</span>
+<span class="sd">        :type sponsored_allowance_id: UUID, optional</span>
+<span class="sd">        :return: Remaining credits</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">current_date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">current_date</span><span class="p">)</span>
+            <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_models</span><span class="p">()</span>
+            <span class="n">model_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span><span class="p">]</span>
+
+            <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">model_id</span><span class="p">,</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">prompt_tokens</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s2">&quot;prompt_tokens_sum&quot;</span><span class="p">),</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">response_tokens</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span>
+                        <span class="s2">&quot;response_tokens_sum&quot;</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">log_date</span><span class="p">)</span> <span class="o">==</span> <span class="n">current_date</span><span class="p">,</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">model_id</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">model_list</span><span class="p">),</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">sponsored_allowance_id</span> <span class="o">==</span> <span class="n">sponsored_allowance_id</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+            <span class="n">used_daily_credits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_credits_from_tokens</span><span class="p">(</span>
+                <span class="n">records</span><span class="o">=</span><span class="n">results</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="n">models</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_credits</span><span class="p">(</span>
+            <span class="n">user</span><span class="p">,</span> <span class="n">sponsored_allowance_id</span><span class="o">=</span><span class="n">sponsored_allowance_id</span>
+        <span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">used_daily_credits</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_remaining_sponsored_credits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sponsored_allowance_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get remaining credits in a sponsored allowance</span>
+
+<span class="sd">        :param sponsored_allowance_id: ID of the sponsored allowance</span>
+<span class="sd">        :type sponsored_allowance_id: str</span>
+<span class="sd">        :return: Remaining credits in the allowance</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+                <span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">creation_date</span><span class="p">,</span>
+                <span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">total_credit_limit</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">sponsored_allowance_id</span><span class="p">)</span>
+
+            <span class="n">creation_date</span><span class="p">,</span> <span class="n">total_credit_limit</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+            <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_models</span><span class="p">()</span>
+            <span class="n">model_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span><span class="p">]</span>
+
+            <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">model_id</span><span class="p">,</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">prompt_tokens</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s2">&quot;prompt_tokens_sum&quot;</span><span class="p">),</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">response_tokens</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span>
+                        <span class="s2">&quot;response_tokens_sum&quot;</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">sponsored_allowance_id</span> <span class="o">==</span> <span class="n">sponsored_allowance_id</span><span class="p">,</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">log_date</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">creation_date</span><span class="p">,</span>
+                    <span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">model_id</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">model_list</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">TokenUsageLog</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+            <span class="n">total_credits_used</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_credits_from_tokens</span><span class="p">(</span>
+                <span class="n">records</span><span class="o">=</span><span class="n">results</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="n">models</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_credit_limit</span> <span class="o">-</span> <span class="n">total_credits_used</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TokenTracker.get_models">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenTracker.get_models">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_models</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ModelPricingSchema</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all available models.</span>
+
+<span class="sd">        :param provider: If not None, only returns the models by this provider. Defaults to None</span>
+<span class="sd">        :type provider: str, optional</span>
+<span class="sd">        :return: A description of the models&#39; pricing schema</span>
+<span class="sd">        :rtype: list[ModelPricingSchema]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">provider</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">models</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ModelPricing</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">models</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ModelPricing</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ModelPricing</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="n">provider</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ModelPricingSchema</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">from_attributes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="TokenTracker.is_paid">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenTracker.is_paid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_paid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check whether a model requires credits to use</span>
+
+<span class="sd">        :param model_id: ID of the model</span>
+<span class="sd">        :type model_id: str</span>
+<span class="sd">        :return: True if credits are required to use this model, False otherwise</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_models</span><span class="p">()</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">model_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not uniquely determine the model based on </span><span class="si">{</span><span class="n">model_id</span><span class="si">=}</span><span class="s2">!&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input_cost_credits</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">output_cost_credits</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="TokenTracker.max_credits">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenTracker.max_credits">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_credits</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">user</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">sponsored_allowance_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sponsored_allowance_id</span><span class="p">:</span> <span class="n">UUID</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a user&#39;s maximum daily credits.</span>
+
+<span class="sd">        :param user: User</span>
+<span class="sd">        :type user: dict</span>
+<span class="sd">        :param sponsored_allowance_name: Name of the sponsored allowance to consider</span>
+<span class="sd">        :type sponsored_allowance_name: str, optional</span>
+<span class="sd">        :param sponsored_allowance_id: ID of the sponsored allowance to consider</span>
+<span class="sd">        :type sponsored_allowance_id: str, optional</span>
+<span class="sd">        :return: Maximum daily credit allowance</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sponsored_allowance_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sponsored_allowance_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Pass either `sponsored_allowance_name` or</span>
+<span class="sd">                `sponsored_allowance_id`, not both!&quot;&quot;&quot;</span>
+            <span class="p">)</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sponsored_allowance_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sponsored_allowance_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">base_allowance</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseSetting</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BaseSetting</span><span class="o">.</span><span class="n">setting_key</span> <span class="o">==</span> <span class="s2">&quot;base_credit_allowance&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+                    <span class="o">.</span><span class="n">setting_value</span>
+                <span class="p">)</span>
+                <span class="n">group_allowances</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+                        <span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">CreditGroup</span><span class="o">.</span><span class="n">max_credit</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">CreditGroupUser</span><span class="p">,</span>
+                        <span class="n">CreditGroup</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">CreditGroupUser</span><span class="o">.</span><span class="n">credit_group_id</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">CreditGroupUser</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+                    <span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="n">max_credits</span> <span class="o">=</span> <span class="n">base_allowance</span> <span class="o">+</span> <span class="n">group_allowances</span>
+            <span class="k">elif</span> <span class="n">sponsored_allowance_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">max_credits</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">daily_credit_limit</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">sponsored_allowance_name</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">sponsored_allowance_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">max_credits</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">daily_credit_limit</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SponsoredAllowance</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">sponsored_allowance_id</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">max_credits</span></div>
+
+
+<div class="viewcode-block" id="TokenTracker.remaining_credits">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenTracker.remaining_credits">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remaining_credits</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">sponsored_allowance_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get remaining credits for the specified user and sponsored</span>
+<span class="sd">        allowance.</span>
+
+<span class="sd">        :param user_id: User</span>
+<span class="sd">        :type user_id: dict</span>
+<span class="sd">        :param sponsored_allowance_name: Name of the sponsored allowance</span>
+<span class="sd">        :type sponsored_allowance_name: str, optional</span>
+<span class="sd">        :return: Remaining daily credits available to the user, and in the sponsored allowance (if specified)</span>
+<span class="sd">        :rtype: tuple[int, int]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking remaining credits...&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sponsored_allowance_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sponsored_allowance_id</span> <span class="o">=</span> <span class="n">UUID</span><span class="p">(</span>
+                <span class="n">get_sponsored_allowance</span><span class="p">(</span>
+                    <span class="n">database_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db_url</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sponsored_allowance_name</span>
+                <span class="p">)[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sponsored_allowance_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">user_credits_remaining</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_user_credits</span><span class="p">(</span>
+            <span class="n">user</span><span class="p">,</span> <span class="n">sponsored_allowance_id</span>
+        <span class="p">)</span>
+        <span class="n">total_sponsored_credits_remaining</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">sponsored_allowance_name</span><span class="p">:</span>
+            <span class="n">total_sponsored_credits_remaining</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_sponsored_credits</span><span class="p">(</span>
+                <span class="n">sponsored_allowance_id</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">user_credits_remaining</span><span class="p">,</span> <span class="n">total_sponsored_credits_remaining</span></div>
+
+
+<div class="viewcode-block" id="TokenTracker.log_token_usage">
+<a class="viewcode-back" href="../../api/tracking.html#openwebui_token_tracking.tracking.TokenTracker.log_token_usage">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_token_usage</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">user</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">prompt_tokens</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">response_tokens</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">sponsored_allowance_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Log the used tokens in the database</span>
+
+<span class="sd">        :param provider: Provider of the model used with these tokens</span>
+<span class="sd">        :type provider: str</span>
+<span class="sd">        :param model_id: ID of the model used with these tokens</span>
+<span class="sd">        :type model_id: str</span>
+<span class="sd">        :param user: User</span>
+<span class="sd">        :type user: dict</span>
+<span class="sd">        :param prompt_tokens: Number of tokens used in the prompt (input tokens)</span>
+<span class="sd">        :type prompt_tokens: int</span>
+<span class="sd">        :param response_tokens: Number of tokens in the response (output tokens)</span>
+<span class="sd">        :type response_tokens: int</span>
+<span class="sd">        :param sponsored_allowance_name: Name of the sponsored allowance to apply</span>
+<span class="sd">        :type sponsored_allowance_name: str, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Date: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="si">}</span><span class="s2">Z | Email: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;| Model: </span><span class="si">{</span><span class="n">model_id</span><span class="si">}</span><span class="s2"> | Prompt Tokens: </span><span class="si">{</span><span class="n">prompt_tokens</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;| Response Tokens: </span><span class="si">{</span><span class="n">response_tokens</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sponsored_allowance_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sponsored_allowance_id</span> <span class="o">=</span> <span class="n">UUID</span><span class="p">(</span>
+                    <span class="n">get_sponsored_allowance</span><span class="p">(</span>
+                        <span class="n">database_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db_url</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sponsored_allowance_name</span>
+                    <span class="p">)[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sponsored_allowance_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">TokenUsageLog</span><span class="p">(</span>
+                    <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span>
+                    <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span>
+                    <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
+                    <span class="n">prompt_tokens</span><span class="o">=</span><span class="n">prompt_tokens</span><span class="p">,</span>
+                    <span class="n">response_tokens</span><span class="o">=</span><span class="n">response_tokens</span><span class="p">,</span>
+                    <span class="n">sponsored_allowance_id</span><span class="o">=</span><span class="n">sponsored_allowance_id</span><span class="p">,</span>
+                    <span class="n">log_date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_dotenv</span><span class="p">,</span> <span class="n">load_dotenv</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+    <span class="n">load_dotenv</span><span class="p">(</span><span class="n">find_dotenv</span><span class="p">())</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="n">acc</span> <span class="o">=</span> <span class="n">TokenTracker</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DATABASE_URL&quot;</span><span class="p">])</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">acc</span><span class="o">.</span><span class="n">get_models</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">acc</span><span class="o">.</span><span class="n">get_models</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">&quot;anthropic&quot;</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Simon Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
