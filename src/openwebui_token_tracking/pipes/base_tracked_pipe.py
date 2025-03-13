@@ -274,12 +274,13 @@ class BaseTrackedPipe(ABC):
         sponsored_allowance_name = None
         # <v0.5.19 and v0.5.19+ keep the model info in different places:
         # For <v0.5.19, there is a key 'info' that holds the base model id.
-        # For v0.5.19+, there the base model id is a key in model
+        # For v0.5.19, the base model id is a key in model
+        # For v0.5.20, the base model id is in the key 'info' again
         model_info = model.get("info", None)
         if model_info is None and "base_model_id" in model:
             model_info = model
 
-        if model_info:
+        if model_info and model_info.get("base_model_id", None) is not None:
             # Check if Workspace Model name follows sponsored allowance
             # naming scheme and extract sponsored allowance name
             if "---" in model_info["id"]:
