@@ -1,6 +1,6 @@
 [project]
 name = "openwebui-token-tracking"
-version = "0.1.6"
+version = "0.1.7"
 description = "A library to facilitate token tracking and limiting in Open WebUI."
 readme = "README.md"
 authors = [
@@ -11,7 +11,7 @@ dependencies = [
     "alembic>=1.14.0",
     "click>=8.1.8",
     "google-generativeai",
-    "open-webui",
+    "open-webui==0.6.0",
     "pydantic>=2.9.2",
     "pytest>=8.3.4",
     "python-dotenv>=1.0.1",
