@@ -10,12 +10,12 @@ requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.14.0",
     "click>=8.1.8",
-    "google-generativeai>=0.7.2",
+    "google-generativeai",
     "open-webui",
     "pydantic>=2.9.2",
     "pytest>=8.3.4",
     "python-dotenv>=1.0.1",
-    "sqlalchemy>=2.0.32",
+    "sqlalchemy[asyncio]>=2.0.32",
 ]
 
 [build-system]

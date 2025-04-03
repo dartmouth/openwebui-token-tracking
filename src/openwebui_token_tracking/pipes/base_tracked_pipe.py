@@ -13,6 +13,7 @@ Classes:
 
 from abc import ABC, abstractmethod
 import datetime
+import logging
 import os
 import re
 from typing import Any, List, Union, Generator, Iterator, Tuple
@@ -25,6 +26,8 @@ from openwebui_token_tracking.tracking import (
     DailyTokenLimitExceededError,
     TotalTokenLimitExceededError,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _time_to_midnight():
@@ -270,6 +273,7 @@ class BaseTrackedPipe(ABC):
         :raises TokenLimitExceededError: If user has exceeded their token limit
         :raises RequestError: If the API request fails
         """
+        logger.debug(__metadata__)
         model = __metadata__["model"]
         sponsored_allowance_name = None
         # <v0.5.19 and v0.5.19+ keep the model info in different places:
