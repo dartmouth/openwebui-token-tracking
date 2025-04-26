@@ -145,6 +145,7 @@ class BaseTrackedPipe(ABC):
 
             raise DailyTokenLimitExceededError(
                 f"You've exceeded the daily usage limit ({max_credits} credits) for the paid AI models. "
+f"\nYour usage will reset in {_time_to_midnight()}.\n"
                 f"If you would like to obtain more credits, please reach out to {os.environ.get('TOKEN_CREDIT_CONTACT_EMAIL', 'rc@dartmouth.edu')}.\n"
                 f"**IMPORTANT:** You can still use one of the free models (e.g., {free_models[0].name})."
             )
