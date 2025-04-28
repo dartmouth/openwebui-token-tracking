@@ -13,3 +13,4 @@ API Reference
     api/settings
     api/sponsored
     api/user
+    api/actions

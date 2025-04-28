@@ -27,12 +27,18 @@ cli.add_command(user.user)
 @cli.command()
 @click.option("--database-url", envvar="DATABASE_URL")
 @click.option(
-    "--json",
-    "json_file",
+    "--model-json",
+    "model_json_file",
     type=click.File("r"),
     help="Read multiple models from a JSON file",
 )
-def init(database_url: str, json_file: str):
+@click.option(
+    "--settings-json",
+    "settings_json_file",
+    type=click.File("r"),
+    help="Read initial settings from a JSON file",
+)
+def init(database_url: str, model_json_file: str, settings_json_file: str):
     """Initialize the token tracking tool with default settings"""
     runner = CliRunner()
 
@@ -45,12 +51,17 @@ def init(database_url: str, json_file: str):
         return result.exit_code
 
     click.echo("Adding pricing...")
-    if not json_file:
-        json_file = open(
+    if not model_json_file:
+        model_json_file = open(
             f"{os.path.dirname(os.path.realpath(__file__))}/../resources/models.json"
         )
 
-    model_pricing_data = json.load(json_file)
+    if not settings_json_file:
+        settings_json_file = open(
+            f"{os.path.dirname(os.path.realpath(__file__))}/../resources/settings.json"
+        )
+
+    model_pricing_data = json.load(model_json_file)
     model_pricing = [ModelPricingSchema(**m) for m in model_pricing_data]
 
     for model in model_pricing:
@@ -61,7 +72,14 @@ def init(database_url: str, json_file: str):
         )
 
     click.echo("Initializing settings...")
-    result = runner.invoke(cli, ["settings", "init"])
+    settings = json.load(settings_json_file)
+
+    settings = [
+        f"--setting {s['setting_key']} {s['setting_value']} \"{s['description']}\""
+        for s in settings
+    ]
+
+    result = runner.invoke(cli, "settings init " + " ".join(settings))
     if result.exit_code != 0:
         click.echo("Settings initialization failed!")
         return result.exit_code

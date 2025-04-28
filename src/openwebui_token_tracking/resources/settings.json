@@ -1,0 +1,7 @@
+[
+    {
+        "setting_key": "base_credit_allowance",
+        "setting_value": "1000",
+        "description": "Baseline credit allowance for all users."
+    }
+]
