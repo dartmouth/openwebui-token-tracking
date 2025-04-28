@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database &mdash; Open WebUI Token Tracking v0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=9b771779" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fa47ad08"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Credit Groups" href="credit_groups.html" />
+    <link rel="prev" title="Tracking" href="tracking.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Open WebUI Token Tracking
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Open WebUI Token Tracking</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tracking.html">Tracking</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.migrate_database"><code class="docutils literal notranslate"><span class="pre">migrate_database()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.init_db"><code class="docutils literal notranslate"><span class="pre">init_db()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup"><code class="docutils literal notranslate"><span class="pre">CreditGroup</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.description"><code class="docutils literal notranslate"><span class="pre">CreditGroup.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.id"><code class="docutils literal notranslate"><span class="pre">CreditGroup.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.max_credit"><code class="docutils literal notranslate"><span class="pre">CreditGroup.max_credit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.name"><code class="docutils literal notranslate"><span class="pre">CreditGroup.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.users"><code class="docutils literal notranslate"><span class="pre">CreditGroup.users</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser"><code class="docutils literal notranslate"><span class="pre">CreditGroupUser</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser.credit_group"><code class="docutils literal notranslate"><span class="pre">CreditGroupUser.credit_group</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser.credit_group_id"><code class="docutils literal notranslate"><span class="pre">CreditGroupUser.credit_group_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser.user"><code class="docutils literal notranslate"><span class="pre">CreditGroupUser.user</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser.user_id"><code class="docutils literal notranslate"><span class="pre">CreditGroupUser.user_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing"><code class="docutils literal notranslate"><span class="pre">ModelPricing</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.id"><code class="docutils literal notranslate"><span class="pre">ModelPricing.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.input_cost_credits"><code class="docutils literal notranslate"><span class="pre">ModelPricing.input_cost_credits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.name"><code class="docutils literal notranslate"><span class="pre">ModelPricing.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.output_cost_credits"><code class="docutils literal notranslate"><span class="pre">ModelPricing.output_cost_credits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.per_input_tokens"><code class="docutils literal notranslate"><span class="pre">ModelPricing.per_input_tokens</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.per_output_tokens"><code class="docutils literal notranslate"><span class="pre">ModelPricing.per_output_tokens</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.provider"><code class="docutils literal notranslate"><span class="pre">ModelPricing.provider</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.BaseSetting"><code class="docutils literal notranslate"><span class="pre">BaseSetting</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.BaseSetting.description"><code class="docutils literal notranslate"><span class="pre">BaseSetting.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.BaseSetting.setting_key"><code class="docutils literal notranslate"><span class="pre">BaseSetting.setting_key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.BaseSetting.setting_value"><code class="docutils literal notranslate"><span class="pre">BaseSetting.setting_value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.base_models"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.base_models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.creation_date"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.creation_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.daily_credit_limit"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.daily_credit_limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.id"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.name"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.sponsor_id"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.sponsor_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.total_credit_limit"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowance.total_credit_limit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.base_model"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels.base_model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.base_model_id"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels.base_model_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels.sponsored_allowance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance_id"><code class="docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels.sponsored_allowance_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.log_date"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.log_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.model_id"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.model_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.prompt_tokens"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.prompt_tokens</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.provider"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.provider</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.response_tokens"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.response_tokens</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.sponsored_allowance_id"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.sponsored_allowance_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.TokenUsageLog.user_id"><code class="docutils literal notranslate"><span class="pre">TokenUsageLog.user_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.db.User"><code class="docutils literal notranslate"><span class="pre">User</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.User.credit_groups"><code class="docutils literal notranslate"><span class="pre">User.credit_groups</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.User.email"><code class="docutils literal notranslate"><span class="pre">User.email</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.User.id"><code class="docutils literal notranslate"><span class="pre">User.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.db.User.name"><code class="docutils literal notranslate"><span class="pre">User.name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="credit_groups.html">Credit Groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_pricing.html">Model Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipes.html">Pipes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sponsored.html">Sponsored</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user.html">User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="actions.html">Actions</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Open WebUI Token Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Database</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/db.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-openwebui_token_tracking.db">
+<span id="database"></span><h1>Database<a class="headerlink" href="#module-openwebui_token_tracking.db" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.migrate_database">
+<span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">migrate_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/db.html#migrate_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.migrate_database" title="Link to this definition"></a></dt>
+<dd><p>Creates the tables required for token tracking in the specified database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>database_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – A database URL in <a class="reference external" href="https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls">SQLAlchemy format</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.init_db">
+<span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">init_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/db.html#init_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.init_db" title="Link to this definition"></a></dt>
+<dd><p>Initialize the database connection.</p>
+<p>Creates and returns a SQLAlchemy database engine using the provided connection URL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>database_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – URL for connecting to the database</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configured SQLAlchemy database engine</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">sqlalchemy.engine.Engine</span></code></p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><p></p></dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">init_db</span><span class="p">(</span><span class="s2">&quot;postgresql://user:password@localhost/dbname&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroup">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">CreditGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/credit_group.html#CreditGroup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroup" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the credit group table</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroup.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroup.description" title="Link to this definition"></a></dt>
+<dd><p>Description of the credit group’s purpose or members</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroup.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroup.id" title="Link to this definition"></a></dt>
+<dd><p>Primary key UUID for the credit group</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroup.max_credit">
+<span class="sig-name descname"><span class="pre">max_credit</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroup.max_credit" title="Link to this definition"></a></dt>
+<dd><p>Maximum number of credits allocated to members of this group</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroup.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroup.name" title="Link to this definition"></a></dt>
+<dd><p>Name of the credit group, must be unique (case-insensitive)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroup.users">
+<span class="sig-name descname"><span class="pre">users</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroup.users" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser" title="openwebui_token_tracking.db.CreditGroupUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreditGroupUser</span></code></a> model, linked via <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser.credit_group" title="openwebui_token_tracking.db.CreditGroupUser.credit_group"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CreditGroupUser.credit_group</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroupUser">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">CreditGroupUser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/credit_group.html#CreditGroupUser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroupUser" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the credit group user table</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroupUser.credit_group">
+<span class="sig-name descname"><span class="pre">credit_group</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroupUser.credit_group" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup" title="openwebui_token_tracking.db.CreditGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreditGroup</span></code></a>, linked via <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.users" title="openwebui_token_tracking.db.CreditGroup.users"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CreditGroup.users</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroupUser.credit_group_id">
+<span class="sig-name descname"><span class="pre">credit_group_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroupUser.credit_group_id" title="Link to this definition"></a></dt>
+<dd><p>ID of the credit group, references <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroup.id" title="openwebui_token_tracking.db.CreditGroup.id"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CreditGroup.id</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroupUser.user">
+<span class="sig-name descname"><span class="pre">user</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroupUser.user" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.User" title="openwebui_token_tracking.db.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a> model,  linked via <a class="reference internal" href="#openwebui_token_tracking.db.User.credit_groups" title="openwebui_token_tracking.db.User.credit_groups"><code class="xref py py-attr docutils literal notranslate"><span class="pre">User.credit_groups</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.CreditGroupUser.user_id">
+<span class="sig-name descname"><span class="pre">user_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.CreditGroupUser.user_id" title="Link to this definition"></a></dt>
+<dd><p>ID of a member of the credit group, references <a class="reference internal" href="#openwebui_token_tracking.db.User.id" title="openwebui_token_tracking.db.User.id"><code class="xref py py-attr docutils literal notranslate"><span class="pre">User.id</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">ModelPricing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/model_pricing.html#ModelPricing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the model pricing table</p>
+<p>Stores pricing information for AI models, including credit costs for input and output tokens.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.id" title="Link to this definition"></a></dt>
+<dd><p>Identifier of the model (e.g., ‘gpt-4’, ‘claude-3’), part of the composite primary key</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.input_cost_credits">
+<span class="sig-name descname"><span class="pre">input_cost_credits</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.input_cost_credits" title="Link to this definition"></a></dt>
+<dd><p>Number of credits charged for input tokens</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.name" title="Link to this definition"></a></dt>
+<dd><p>Display name of the model</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.output_cost_credits">
+<span class="sig-name descname"><span class="pre">output_cost_credits</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.output_cost_credits" title="Link to this definition"></a></dt>
+<dd><p>Number of credits charged for output tokens</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.per_input_tokens">
+<span class="sig-name descname"><span class="pre">per_input_tokens</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.per_input_tokens" title="Link to this definition"></a></dt>
+<dd><p>Number of input tokens per credit charge (e.g., 1000000 tokens per <cite>input_cost_credits</cite>)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.per_output_tokens">
+<span class="sig-name descname"><span class="pre">per_output_tokens</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.per_output_tokens" title="Link to this definition"></a></dt>
+<dd><p>Number of output tokens per credit charge (e.g., 1000000 tokens per <cite>output_cost_credits</cite>)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.ModelPricing.provider">
+<span class="sig-name descname"><span class="pre">provider</span></span><a class="headerlink" href="#openwebui_token_tracking.db.ModelPricing.provider" title="Link to this definition"></a></dt>
+<dd><p>Provider of the AI model (e.g., ‘openai’, ‘anthropic’), part of the composite primary key</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.BaseSetting">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">BaseSetting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/settings.html#BaseSetting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.BaseSetting" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the baseline settings table</p>
+<p>Stores global configuration settings for the token tracking system as key-value pairs.
+Used for system-wide settings like default credit allowances and rate limits.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.BaseSetting.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#openwebui_token_tracking.db.BaseSetting.description" title="Link to this definition"></a></dt>
+<dd><p>Human-readable description of what the setting controls and its purpose</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.BaseSetting.setting_key">
+<span class="sig-name descname"><span class="pre">setting_key</span></span><a class="headerlink" href="#openwebui_token_tracking.db.BaseSetting.setting_key" title="Link to this definition"></a></dt>
+<dd><p>Primary key representing the unique setting identifier</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.BaseSetting.setting_value">
+<span class="sig-name descname"><span class="pre">setting_value</span></span><a class="headerlink" href="#openwebui_token_tracking.db.BaseSetting.setting_value" title="Link to this definition"></a></dt>
+<dd><p>Value of the setting stored as a string (may need conversion to appropriate type when used)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">SponsoredAllowance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/sponsored.html#SponsoredAllowance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the sponsored allowance table</p>
+<p>Represents a credit allowance sponsored by an entity, which can be used by users
+to access specific AI models without consuming their personal credits.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.base_models">
+<span class="sig-name descname"><span class="pre">base_models</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.base_models" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels" title="openwebui_token_tracking.db.SponsoredAllowanceBaseModels"><code class="xref py py-class docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels</span></code></a> model, linked via <a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance" title="openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SponsoredAllowanceBaseModels.sponsored_allowance</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.creation_date">
+<span class="sig-name descname"><span class="pre">creation_date</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.creation_date" title="Link to this definition"></a></dt>
+<dd><p>Timestamp when the sponsored allowance was created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.daily_credit_limit">
+<span class="sig-name descname"><span class="pre">daily_credit_limit</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.daily_credit_limit" title="Link to this definition"></a></dt>
+<dd><p>Daily credit limit per user</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.id" title="Link to this definition"></a></dt>
+<dd><p>Primary key UUID for the sponsored allowance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.name" title="Link to this definition"></a></dt>
+<dd><p>Unique name of the sponsored allowance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.sponsor_id">
+<span class="sig-name descname"><span class="pre">sponsor_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.sponsor_id" title="Link to this definition"></a></dt>
+<dd><p>Identifier for the entity sponsoring this allowance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowance.total_credit_limit">
+<span class="sig-name descname"><span class="pre">total_credit_limit</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowance.total_credit_limit" title="Link to this definition"></a></dt>
+<dd><p>Total credit limit across all users and base models, i.e., maximum sponsored amount</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowanceBaseModels">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">SponsoredAllowanceBaseModels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/sponsored.html#SponsoredAllowanceBaseModels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the sponsored allowance base models association table</p>
+<p>Junction table that defines which base models are available under a specific
+sponsored allowance.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowanceBaseModels.base_model">
+<span class="sig-name descname"><span class="pre">base_model</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.base_model" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing" title="openwebui_token_tracking.db.ModelPricing"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelPricing</span></code></a> model</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowanceBaseModels.base_model_id">
+<span class="sig-name descname"><span class="pre">base_model_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.base_model_id" title="Link to this definition"></a></dt>
+<dd><p>Part of composite primary key, references <a class="reference internal" href="#openwebui_token_tracking.db.ModelPricing.id" title="openwebui_token_tracking.db.ModelPricing.id"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ModelPricing.id</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance">
+<span class="sig-name descname"><span class="pre">sponsored_allowance</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance" title="openwebui_token_tracking.db.SponsoredAllowance"><code class="xref py py-class docutils literal notranslate"><span class="pre">SponsoredAllowance</span></code></a> model, linked via <a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.base_models" title="openwebui_token_tracking.db.SponsoredAllowance.base_models"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SponsoredAllowance.base_models</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance_id">
+<span class="sig-name descname"><span class="pre">sponsored_allowance_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.SponsoredAllowanceBaseModels.sponsored_allowance_id" title="Link to this definition"></a></dt>
+<dd><p>Part of composite primary key, references <a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance.id" title="openwebui_token_tracking.db.SponsoredAllowance.id"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SponsoredAllowance.id</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">TokenUsageLog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/token_usage.html#TokenUsageLog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the token usage log table</p>
+<p>Records individual token usage events for tracking and billing purposes.
+Each record represents a single API call with token consumption details.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.log_date">
+<span class="sig-name descname"><span class="pre">log_date</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.log_date" title="Link to this definition"></a></dt>
+<dd><p>Timestamp when the token usage occurred, part of the composite primary key</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.model_id">
+<span class="sig-name descname"><span class="pre">model_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.model_id" title="Link to this definition"></a></dt>
+<dd><p>ID of the model used (e.g., ‘gpt-4’, ‘claude-3’), part of the composite primary key</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.prompt_tokens">
+<span class="sig-name descname"><span class="pre">prompt_tokens</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.prompt_tokens" title="Link to this definition"></a></dt>
+<dd><p>Number of tokens used in the input/prompt</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.provider">
+<span class="sig-name descname"><span class="pre">provider</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.provider" title="Link to this definition"></a></dt>
+<dd><p>Provider of the AI model (e.g., ‘openai’, ‘anthropic’), part of the composite primary key</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.response_tokens">
+<span class="sig-name descname"><span class="pre">response_tokens</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.response_tokens" title="Link to this definition"></a></dt>
+<dd><p>Number of tokens generated in the output/response</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.sponsored_allowance_id">
+<span class="sig-name descname"><span class="pre">sponsored_allowance_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.sponsored_allowance_id" title="Link to this definition"></a></dt>
+<dd><p>Optional reference to a <a class="reference internal" href="#openwebui_token_tracking.db.SponsoredAllowance" title="openwebui_token_tracking.db.SponsoredAllowance"><code class="xref py py-class docutils literal notranslate"><span class="pre">SponsoredAllowance</span></code></a> if the usage was covered by a sponsor</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.TokenUsageLog.user_id">
+<span class="sig-name descname"><span class="pre">user_id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.TokenUsageLog.user_id" title="Link to this definition"></a></dt>
+<dd><p>ID of the user who consumed the tokens, part of the composite primary key</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.User">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.db.</span></span><span class="sig-name descname"><span class="pre">User</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/db/user.html#User"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.db.User" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
+<p>SQLAlchemy model for the user table.</p>
+<p>Mocks (parts of) the user table managed by Open WebUI
+and is only used for testing purposes.</p>
+<p>This model represents users who can consume tokens and be part of credit groups.
+In production, this would be replaced by the actual user model from Open WebUI.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.User.credit_groups">
+<span class="sig-name descname"><span class="pre">credit_groups</span></span><a class="headerlink" href="#openwebui_token_tracking.db.User.credit_groups" title="Link to this definition"></a></dt>
+<dd><p>Relationship with the <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser" title="openwebui_token_tracking.db.CreditGroupUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreditGroupUser</span></code></a> model, linked via <a class="reference internal" href="#openwebui_token_tracking.db.CreditGroupUser.user" title="openwebui_token_tracking.db.CreditGroupUser.user"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CreditGroupUser.user</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.User.email">
+<span class="sig-name descname"><span class="pre">email</span></span><a class="headerlink" href="#openwebui_token_tracking.db.User.email" title="Link to this definition"></a></dt>
+<dd><p>User’s email address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.User.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#openwebui_token_tracking.db.User.id" title="Link to this definition"></a></dt>
+<dd><p>Primary key identifier for the user</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.db.User.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#openwebui_token_tracking.db.User.name" title="Link to this definition"></a></dt>
+<dd><p>User’s display name</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tracking.html" class="btn btn-neutral float-left" title="Tracking" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="credit_groups.html" class="btn btn-neutral float-right" title="Credit Groups" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Simon Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

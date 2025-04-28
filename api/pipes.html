@@ -1,0 +1,582 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipes &mdash; Open WebUI Token Tracking v0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=9b771779" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fa47ad08"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Settings" href="settings.html" />
+    <link rel="prev" title="Models" href="models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Open WebUI Token Tracking
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Open WebUI Token Tracking</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tracking.html">Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="credit_groups.html">Credit Groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_pricing.html">Model Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Pipes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe"><code class="docutils literal notranslate"><span class="pre">AnthropicTrackedPipe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves"><code class="docutils literal notranslate"><span class="pre">AnthropicTrackedPipe.Valves</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.DATABASE_URL_ENV"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.DATABASE_URL_ENV</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.MODEL_ID_PREFIX"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.MODEL_ID_PREFIX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.get_models"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.get_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.non_stream_response"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.non_stream_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.pipe"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.pipe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.pipes"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.pipes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.stream_response"><code class="docutils literal notranslate"><span class="pre">BaseTrackedPipe.stream_response()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe"><code class="docutils literal notranslate"><span class="pre">GoogleTrackedPipe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves"><code class="docutils literal notranslate"><span class="pre">GoogleTrackedPipe.Valves</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.pipe"><code class="docutils literal notranslate"><span class="pre">GoogleTrackedPipe.pipe()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.pipes.MistralTrackedPipe"><code class="docutils literal notranslate"><span class="pre">MistralTrackedPipe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.MistralTrackedPipe.Valves"><code class="docutils literal notranslate"><span class="pre">MistralTrackedPipe.Valves</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe"><code class="docutils literal notranslate"><span class="pre">OpenAITrackedPipe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves"><code class="docutils literal notranslate"><span class="pre">OpenAITrackedPipe.Valves</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.pipe"><code class="docutils literal notranslate"><span class="pre">OpenAITrackedPipe.pipe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.pipes"><code class="docutils literal notranslate"><span class="pre">OpenAITrackedPipe.pipes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sponsored.html">Sponsored</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user.html">User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="actions.html">Actions</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Open WebUI Token Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Pipes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/pipes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-openwebui_token_tracking.pipes">
+<span id="pipes"></span><h1>Pipes<a class="headerlink" href="#module-openwebui_token_tracking.pipes" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.AnthropicTrackedPipe">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.pipes.</span></span><span class="sig-name descname"><span class="pre">AnthropicTrackedPipe</span></span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/anthropic.html#AnthropicTrackedPipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe" title="openwebui_token_tracking.pipes.base_tracked_pipe.BaseTrackedPipe"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrackedPipe</span></code></a></p>
+<p>Anthropic-specific implementation of the BaseTrackedPipe for handling API requests
+to Anthropic’s chat completion endpoints with token tracking.</p>
+<p>This class handles authentication, request formatting, and response processing
+specific to the Anthropic API, including support for image processing and
+multi-modal messages.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Valves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/anthropic.html#AnthropicTrackedPipe.Valves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration parameters for Anthropic API connections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ANTHROPIC_API_KEY</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>DEBUG</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves.ANTHROPIC_API_KEY">
+<span class="sig-name descname"><span class="pre">ANTHROPIC_API_KEY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves.ANTHROPIC_API_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves.DEBUG">
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.AnthropicTrackedPipe.Valves.DEBUG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.pipes.</span></span><span class="sig-name descname"><span class="pre">BaseTrackedPipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/base_tracked_pipe.html#BaseTrackedPipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Base class for handling API requests to different AI model providers with token
+tracking.</p>
+<p>This class provides a common interface for making requests to AI model APIs
+while tracking token usage. It handles both streaming and non-streaming responses,
+and manages token usage limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>provider</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The name of the AI provider.</p></li>
+<li><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The base URL for the provider’s API</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.DATABASE_URL_ENV">
+<span class="sig-name descname"><span class="pre">DATABASE_URL_ENV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DATABASE_URL'</span></em><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.DATABASE_URL_ENV" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.MODEL_ID_PREFIX">
+<span class="sig-name descname"><span class="pre">MODEL_ID_PREFIX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.'</span></em><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.MODEL_ID_PREFIX" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.get_models">
+<span class="sig-name descname"><span class="pre">get_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/base_tracked_pipe.html#BaseTrackedPipe.get_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.get_models" title="Link to this definition"></a></dt>
+<dd><p>Get a list of available models for this provider.</p>
+<p>Retrieves models from the token tracker and formats them into a list
+of dictionaries containing model information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of dictionaries, each containing:
+- id: The model identifier
+- name: The display name of the model</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.non_stream_response">
+<span class="sig-name descname"><span class="pre">non_stream_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sponsored_allowance_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/base_tracked_pipe.html#BaseTrackedPipe.non_stream_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.non_stream_response" title="Link to this definition"></a></dt>
+<dd><p>Handle non-streaming responses from the API.</p>
+<p>Makes the request and ensures token usage is logged
+after receiving the response.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – HTTP headers for the request</p></li>
+<li><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Request payload</p></li>
+<li><p><strong>model_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The ID of the model being accessed</p></li>
+<li><p><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – User information for token tracking</p></li>
+<li><p><strong>sponsored_allowance_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the sponsored allowance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The API response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RequestError</strong> – If the API request fails</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.pipe">
+<span class="sig-name descname"><span class="pre">pipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__user__</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__metadata__</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/base_tracked_pipe.html#BaseTrackedPipe.pipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.pipe" title="Link to this definition"></a></dt>
+<dd><p>Process an incoming request through the appropriate model pipeline.</p>
+<p>This method handles the high-level flow of processing a request:
+1. Checks token limits
+2. Prepares the request
+3. Makes the API call
+4. Handles the response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The request body containing model selection and message</p></li>
+<li><p><strong>__user__</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – User information for token tracking</p></li>
+<li><p><strong>__metadata__</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Additional metadata for the request</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either a string response or a generator for streaming responses</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Generator, Iterator]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="tracking.html#openwebui_token_tracking.tracking.TokenLimitExceededError" title="openwebui_token_tracking.tracking.TokenLimitExceededError"><strong>TokenLimitExceededError</strong></a> – If user has exceeded their token limit</p></li>
+<li><p><strong>RequestError</strong> – If the API request fails</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.pipes">
+<span class="sig-name descname"><span class="pre">pipes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/base_tracked_pipe.html#BaseTrackedPipe.pipes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.pipes" title="Link to this definition"></a></dt>
+<dd><p>Alias for get_models().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of available models</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>]</p>
+</dd>
+<dt class="field-odd">See<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.get_models" title="openwebui_token_tracking.pipes.BaseTrackedPipe.get_models"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_models()</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.BaseTrackedPipe.stream_response">
+<span class="sig-name descname"><span class="pre">stream_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sponsored_allowance_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/base_tracked_pipe.html#BaseTrackedPipe.stream_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.BaseTrackedPipe.stream_response" title="Link to this definition"></a></dt>
+<dd><p>Handle streaming responses from the API.</p>
+<p>Makes the streaming request and ensures token usage is logged
+after the response is complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – HTTP headers for the request</p></li>
+<li><p><strong>payload</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Request payload</p></li>
+<li><p><strong>model_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The ID of the model being accessed</p></li>
+<li><p><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – User information for token tracking</p></li>
+<li><p><strong>sponsored_allowance_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the sponsored allowance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yield<span class="colon">:</span></dt>
+<dd class="field-even"><p>Response chunks from the API</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RequestError</strong> – If the API request fails</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.pipes.</span></span><span class="sig-name descname"><span class="pre">GoogleTrackedPipe</span></span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/google_genai.html#GoogleTrackedPipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe" title="openwebui_token_tracking.pipes.base_tracked_pipe.BaseTrackedPipe"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrackedPipe</span></code></a></p>
+<p>Tracked pipe implementation for Google’s Gemini API.</p>
+<p>This class handles API requests to Google’s Gemini models while tracking token usage.
+It supports both streaming and non-streaming responses, and handles multimodal inputs
+including text and images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>provider</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The provider name, set to “google_genai”</p></li>
+<li><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The base URL for the Gemini API</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Valves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/google_genai.html#GoogleTrackedPipe.Valves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration parameters for the Google Gemini pipe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>GOOGLE_API_KEY</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – API key for authenticating with Google’s API</p></li>
+<li><p><strong>USE_PERMISSIVE_SAFETY</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Whether to use permissive safety settings</p></li>
+<li><p><strong>DEBUG</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Enable debug logging</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.GOOGLE_API_KEY">
+<span class="sig-name descname"><span class="pre">GOOGLE_API_KEY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.GOOGLE_API_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.USE_PERMISSIVE_SAFETY">
+<span class="sig-name descname"><span class="pre">USE_PERMISSIVE_SAFETY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.USE_PERMISSIVE_SAFETY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.DEBUG">
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.Valves.DEBUG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.GoogleTrackedPipe.pipe">
+<span class="sig-name descname"><span class="pre">pipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__user__</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__metadata__</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/google_genai.html#GoogleTrackedPipe.pipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.GoogleTrackedPipe.pipe" title="Link to this definition"></a></dt>
+<dd><p>Process an incoming request through the appropriate model pipeline.</p>
+<p>This method handles the high-level flow of processing a request:
+1. Checks token limits
+2. Prepares the request
+3. Makes the API call
+4. Handles the response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The request body containing model selection and message</p></li>
+<li><p><strong>__user__</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – User information for token tracking</p></li>
+<li><p><strong>__metadata__</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Additional metadata for the request</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either a string response or a generator for streaming responses</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Generator, Iterator]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="tracking.html#openwebui_token_tracking.tracking.TokenLimitExceededError" title="openwebui_token_tracking.tracking.TokenLimitExceededError"><strong>TokenLimitExceededError</strong></a> – If user has exceeded their token limit</p></li>
+<li><p><strong>RequestError</strong> – If the API request fails</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.MistralTrackedPipe">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.pipes.</span></span><span class="sig-name descname"><span class="pre">MistralTrackedPipe</span></span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/mistral.html#MistralTrackedPipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.MistralTrackedPipe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe" title="openwebui_token_tracking.pipes.base_tracked_pipe.BaseTrackedPipe"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrackedPipe</span></code></a></p>
+<p>Tracked pipe implementation for Mistral AI’s API.</p>
+<p>This class handles API requests to Mistral AI models while tracking token usage.
+It supports both streaming and non-streaming responses, and implements
+rate limiting handling with automatic retries.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.MistralTrackedPipe.Valves">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Valves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/mistral.html#MistralTrackedPipe.Valves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.MistralTrackedPipe.Valves" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration parameters for the Mistral pipe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MISTRAL_API_KEY</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – API key for authenticating with Mistral’s API</p></li>
+<li><p><strong>DEBUG</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Enable debug logging</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.MistralTrackedPipe.Valves.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#openwebui_token_tracking.pipes.MistralTrackedPipe.Valves.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.MistralTrackedPipe.Valves.MISTRAL_API_KEY">
+<span class="sig-name descname"><span class="pre">MISTRAL_API_KEY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.MistralTrackedPipe.Valves.MISTRAL_API_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.MistralTrackedPipe.Valves.DEBUG">
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.MistralTrackedPipe.Valves.DEBUG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">openwebui_token_tracking.pipes.</span></span><span class="sig-name descname"><span class="pre">OpenAITrackedPipe</span></span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/openai.html#OpenAITrackedPipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#openwebui_token_tracking.pipes.BaseTrackedPipe" title="openwebui_token_tracking.pipes.base_tracked_pipe.BaseTrackedPipe"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrackedPipe</span></code></a></p>
+<p>OpenAI-specific implementation of the BaseTrackedPipe for handling API requests
+to OpenAI’s chat completion endpoints with token tracking.</p>
+<p>Note that providers that are fully compliant with OpenAI’s API specification
+(both regarding the request and the response structure), can also be used with
+this pipe by setting the respective values in the Valves.</p>
+<p>This class handles authentication, request formatting, and response processing
+specific to the OpenAI API while leveraging the base class’s token tracking
+functionality.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Valves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/openai.html#OpenAITrackedPipe.Valves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration parameters for OpenAI (compatible) API connections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>API_KEY</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>API_BASE_URL</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>PROVIDER</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>DEBUG</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.API_KEY">
+<span class="sig-name descname"><span class="pre">API_KEY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.API_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.API_BASE_URL">
+<span class="sig-name descname"><span class="pre">API_BASE_URL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.API_BASE_URL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.PROVIDER">
+<span class="sig-name descname"><span class="pre">PROVIDER</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.PROVIDER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.DEBUG">
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.Valves.DEBUG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.pipe">
+<span class="sig-name descname"><span class="pre">pipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__user__</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__metadata__</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/openai.html#OpenAITrackedPipe.pipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.pipe" title="Link to this definition"></a></dt>
+<dd><p>Process an incoming request through the appropriate model pipeline.</p>
+<p>This method handles the high-level flow of processing a request:
+1. Checks token limits
+2. Prepares the request
+3. Makes the API call
+4. Handles the response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The request body containing model selection and message</p></li>
+<li><p><strong>__user__</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – User information for token tracking</p></li>
+<li><p><strong>__metadata__</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Additional metadata for the request</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either a string response or a generator for streaming responses</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Generator, Iterator]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="tracking.html#openwebui_token_tracking.tracking.TokenLimitExceededError" title="openwebui_token_tracking.tracking.TokenLimitExceededError"><strong>TokenLimitExceededError</strong></a> – If user has exceeded their token limit</p></li>
+<li><p><strong>RequestError</strong> – If the API request fails</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openwebui_token_tracking.pipes.OpenAITrackedPipe.pipes">
+<span class="sig-name descname"><span class="pre">pipes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/openwebui_token_tracking/pipes/openai.html#OpenAITrackedPipe.pipes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#openwebui_token_tracking.pipes.OpenAITrackedPipe.pipes" title="Link to this definition"></a></dt>
+<dd><p>Alias for get_models().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of available models</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>]</p>
+</dd>
+<dt class="field-odd">See<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_models()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="settings.html" class="btn btn-neutral float-right" title="Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Simon Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
