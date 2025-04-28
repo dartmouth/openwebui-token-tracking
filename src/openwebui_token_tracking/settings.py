@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from openwebui_token_tracking.db import init_db, BaseSetting
 
 
-def init_base_settings(database_url: str, settings: list[dict[str, str]] = None):
+def init_base_settings(database_url: str, settings: list[dict[str, str]] | None = None):
     """Initializes the base settings table with default values
 
     :param database_url: A database URL in `SQLAlchemy format
