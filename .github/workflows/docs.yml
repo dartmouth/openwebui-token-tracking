@@ -14,10 +14,10 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: Install dependencies
         run: |
-          uv sync --group docs
+          uv sync --extra docs
       - name: Sphinx build
         run: |
-          sphinx-build -b html docs/source/ docs/build/html
+          uv run sphinx-build -b html docs/source/ docs/build/html
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
