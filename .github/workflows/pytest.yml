@@ -29,7 +29,7 @@ jobs:
         uv sync
     - name: Init token tracking
       run: |
-        owui-token-tracking init
+        uv run owui-token-tracking init
     - name: Test with pytest
       run: |
         uv run pytest
