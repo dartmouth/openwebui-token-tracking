@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open WebUI Token Tracking &mdash; Open WebUI Token Tracking v0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=9b771779" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fa47ad08"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Open WebUI Token Tracking" href="readme.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Open WebUI Token Tracking
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Open WebUI Token Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Open WebUI Token Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Open WebUI Token Tracking</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="open-webui-token-tracking">
+<h1>Open WebUI Token Tracking<a class="headerlink" href="#open-webui-token-tracking" title="Link to this heading"></a></h1>
+<p><a class="reference external" href="https://github.com/dartmouth/openwebui-token-tracking/actions/workflows/pytest.yml"><img alt="Run tests" src="https://github.com/dartmouth/openwebui-token-tracking/actions/workflows/pytest.yml/badge.svg" /></a></p>
+<p>A library to support token tracking and limiting in <a class="reference external" href="https://openwebui.com/">Open WebUI</a>.</p>
+<section id="basic-concept">
+<h2>Basic concept<a class="headerlink" href="#basic-concept" title="Link to this heading"></a></h2>
+<p>The token tracking mechanism relies on <a class="reference external" href="https://docs.openwebui.com/pipelines/pipes/">Open WebUI’s pipes</a> feature.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You have to use pipes for all models whose token usage you want to track, even the ones that would normally be supported natively by Open WebUI, i.e., those with an OpenAI or Ollama-compatible API.</p>
+<p>Fortunately, this library also offers the implementations of pipes for all major model providers!</p>
+</div>
+<p>In order to avoid differentiating between input and output tokens (which are usually priced quite differently), we use an abstraction from tokens called <em>credits</em>. Credits are determined by calculating the actual cost of the tokens. We recommend using a conversion rate of 1000 credits per 1 USD, but you can set this to whatever you prefer.</p>
+<p>The library supports two kinds of allowances:</p>
+<ul class="simple">
+<li><p>Basic or group-based allowances:</p>
+<ul>
+<li><p>A user gets a daily allowance of credits for all available models</p></li>
+<li><p>The total allowance is the sum of a base allowance plus additional allowances through group memberships</p></li>
+<li><p>Example:</p>
+<ul>
+<li><p>Every user gets an allowance of 1000 credits per day.</p></li>
+<li><p>Every user who is a member of the group “power users” gets an additional 2000 credits per day.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Sponsored allowances:</p>
+<ul>
+<li><p>These are allowances that a sponsor grants for specific models. Sponsored allowances have a daily credit limit (similar, but separate from the group-based daily limit) and a total credit limit.</p></li>
+<li><p>A sponsored allowance relies on the setup of “thin” Workspace Models, one for each base model that the sponsored allowance should be valid for</p></li>
+<li><p>Example:</p>
+<ul>
+<li><p>The “AI Department” wants to grant its members additional credits for GPT-4o and Claude Sonnet.</p></li>
+<li><p>To control cost, the total grant should not exceed 100000 credits.</p></li>
+<li><p>To ensure equitable access for all team members, the daily limit within the sponsored allowance is set to 20 credits.</p></li>
+<li><p>Once the sponsored allowance and the corresponding Workspace Models are set up, members of the AI Department see additional options in their model dropdown list: “AI Department - GPT 4o” and “AI Department - Claude Sonnet”</p></li>
+<li><p>They can now use their separate allowance for these two models, in addition to the basic allowance for all other models (see above)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Since Workspace Models cannot be used as a base model for other Workspace Models, sponsored allowances cannot be used to build other Workspace Models!</p>
+</div>
+<p>The basic workflow for a general token allowance is:</p>
+<ul class="simple">
+<li><p>User attempts to send message to LLM via pipe.</p></li>
+<li><p>Token tracker checks if user has exceeded their token allowance.</p>
+<ul>
+<li><p>If maximum token allowance has been hit or exceeded, no message is sent.</p></li>
+<li><p>If tokens are remaining, message is sent.</p></li>
+</ul>
+</li>
+<li><p>After the LLM’s response is received, the consumed prompt and response tokens are recorded and charged to the user’s account, and the sponsored allowance, if applicable.</p></li>
+</ul>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Since we don’t necessarily know the number of response tokens ahead of time, the message is still sent out as long as the user has at least one token credit remaining. Different logic can be implemented by subclassing <code class="docutils literal notranslate"><span class="pre">TokenTracker</span></code>, if you need it. And we welcome pull requests!</p>
+</div>
+<p>Some of the features offered by this library:</p>
+<ul class="simple">
+<li><p>💸 An abstraction for tokens called “credits” to handle differently priced tokens depending on the model and the modality (input versus output)</p></li>
+<li><p>⏱️ Tracked pipes for all major LLM providers</p></li>
+<li><p>🛠️ A simple class hierarchy to implement your own logic for token tracking or limiting</p></li>
+<li><p>🗂️ Database migration to automatically initialize all required tables in Open WebUI’s database on a separate migration branch</p></li>
+<li><p>💰 Limiting users’ token usage by assigning them a basic token credit allowance</p></li>
+<li><p>🏦 Token credit groups to easily assign additional allowances to multiple users</p></li>
+<li><p>🎁 Sponsored allowances that only apply to certain models</p></li>
+<li><p>🚀 A robust command-line interface to manage credit groups and sponsored allowances</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>Install from PyPI using pip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">openwebui</span><span class="o">-</span><span class="n">token</span><span class="o">-</span><span class="n">tracking</span>
+</pre></div>
+</div>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>To start tracking, you need to first initialize the system in your Open WebUI database. Then, you need to set up the pipes for the models you wish to track.
+You can optionally create credit groups and assign users to them. Sponsored allowances require additional setup.</p>
+<p>A command-line interface  is provided for convenient setup and management of the token tracking system. The pipes are set up through Open WebUI’s interface (see below).</p>
+<section id="initial-setup">
+<h3>Initial setup<a class="headerlink" href="#initial-setup" title="Link to this heading"></a></h3>
+<p>Assuming Open WebUI’s default env variable <code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code> pointing to the database, you can go with all default settings:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">owui</span><span class="o">-</span><span class="n">token</span><span class="o">-</span><span class="n">tracking</span> <span class="n">init</span>
+</pre></div>
+</div>
+<p>This will:</p>
+<ol class="arabic simple">
+<li><p>Migrate the Open WebUI database to include the token tracking tables</p></li>
+<li><p>Add pricing information for all major model providers currently supported by this library (as of the time of release)</p></li>
+<li><p>Initialize a baseline daily token credit allowance for all users of 1000 credits (corresponds to 1 USD)</p></li>
+</ol>
+<p>You can provide your own pricing information in this step by passing the option <code class="docutils literal notranslate"><span class="pre">--json</span></code> and the name of a JSON file with the following structure:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openai&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gpt-4o-2024-08-06&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GPT-4o (Cloud, Paid) 2024-08-06&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;input_cost_credits&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3750</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;per_input_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;output_cost_credits&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;per_output_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000000</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;anthropic&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;claude-3-5-haiku-20241022&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Claude 3.5 Haiku (Cloud, Paid) 2024-10-22&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;input_cost_credits&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;per_input_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;output_cost_credits&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;per_output_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000000</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-up-a-tracked-pipe">
+<h3>Setting up a tracked pipe<a class="headerlink" href="#setting-up-a-tracked-pipe" title="Link to this heading"></a></h3>
+<p>Models need to be connected through pipes to inject the necessary tracking code. A base class for a tracked pipe is provided in <code class="docutils literal notranslate"><span class="pre">openwebui_token_tracking.pipes.BaseTrackedPipe</span></code>. We currently offer implementations for Anthropic, Google, Mistral, and OpenAI.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>APIs that are fully OpenAI-compatible, i.e., they not only provide the same endpoints, but they also use the same input and output scheme, can use the OpenAI implementation of the tracked pipe. An example is <a class="reference external" href="https://huggingface.co/docs/text-generation-inference/en/messages_api">Text Generation Inference Messages API</a>.</p>
+</div>
+<p>To set up the tracked pipe, add a Function to Open WebUI. <strong>Important:</strong> The function name needs to match the value of <code class="docutils literal notranslate"><span class="pre">provider</span></code> in the pricing table (case-insensitive, e.g., <code class="docutils literal notranslate"><span class="pre">Anthropic</span></code>). You can then define the tracked pipe like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">title: Anthropic Pipe</span>
+<span class="sd">author: Simon Stone</span>
+<span class="sd">requirements: openwebui-token-tracking</span>
+<span class="sd">version: 0.1.0</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">openwebui_token_tracking.pipes.anthropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnthropicTrackedPipe</span>
+
+<span class="n">Pipe</span> <span class="o">=</span> <span class="n">AnthropicTrackedPipe</span>
+
+</pre></div>
+</div>
+<p>Each pipe offers Valves to enter an API key or an API base url. Make sure to fill in the required values before activating the pipe.</p>
+</section>
+<section id="base-allowance">
+<h3>Base allowance<a class="headerlink" href="#base-allowance" title="Link to this heading"></a></h3>
+<p>You can find the base allowance in Open WebUI’s database in the table <code class="docutils literal notranslate"><span class="pre">token_tracking_base_settings</span></code>. By default, it is initialized with 1000 credits.</p>
+</section>
+<section id="credit-groups">
+<h3>Credit groups<a class="headerlink" href="#credit-groups" title="Link to this heading"></a></h3>
+<p>You can manage credit groups through <code class="docutils literal notranslate"><span class="pre">openwebui-token-tracking</span></code>’s command-line interface. For example, to create a credit group:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">owui</span><span class="o">-</span><span class="n">token</span><span class="o">-</span><span class="n">tracking</span> <span class="n">credit</span><span class="o">-</span><span class="n">group</span> <span class="n">create</span> <span class="s2">&quot;my credit group&quot;</span> <span class="mi">2000</span> <span class="s2">&quot;my credit group granting an additional 2000 credits&quot;</span>
+</pre></div>
+</div>
+<p>You can then add users to the credit group:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">owui</span><span class="o">-</span><span class="n">token</span><span class="o">-</span><span class="n">tracking</span> <span class="n">credit</span><span class="o">-</span><span class="n">group</span> <span class="n">add</span><span class="o">-</span><span class="n">user</span> <span class="n">my_user_id</span> <span class="s1">&#39;my credit group&#39;</span>
+</pre></div>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>To find a user’s ID in the Open WebUI database, you can also use the CLI:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>owui-token-tracking user find --name my_user_name
+</pre></div>
+</div>
+</div>
+</section>
+<section id="sponsored-allowances">
+<h3>Sponsored allowances<a class="headerlink" href="#sponsored-allowances" title="Link to this heading"></a></h3>
+<p>… coming soon</p>
+</section>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
+<p>Documentation is available <a class="reference external" href="https://dartmouth.github.io/openwebui-token-tracking/">online</a>.</p>
+<p>To build the documentation locally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+sphinx-build<span class="w"> </span>-b<span class="w"> </span>html<span class="w"> </span>docs/source/<span class="w"> </span>docs/build/html
+</pre></div>
+</div>
+</section>
+</section>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Open WebUI Token Tracking</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#basic-concept">Basic concept</a></li>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/tracking.html">Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/db.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/credit_groups.html">Credit Groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/model_pricing.html">Model Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/models.html">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipes.html">Pipes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/settings.html">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sponsored.html">Sponsored</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/user.html">User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/actions.html">Actions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="readme.html" class="btn btn-neutral float-right" title="Open WebUI Token Tracking" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Simon Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
