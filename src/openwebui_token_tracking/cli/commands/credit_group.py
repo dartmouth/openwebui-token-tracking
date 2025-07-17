@@ -74,7 +74,7 @@ def update(name: str, allowance: int, database_url: str):
     try:
         result = openwebui_token_tracking.credit_groups.update_credit_group(
             credit_group_name=name,
-            credit_allowance=allowance,
+            new_credit_allowance=allowance,
             database_url=database_url,
         )
         click.echo(f"Successfully updated credit group '{name}'")
